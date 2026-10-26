@@ -850,6 +850,16 @@ const SETTINGS_SCHEMA = {
           "Show the signed-in user's identity (e.g. email) in the UI.",
         showInDialog: true,
       },
+      showVersionHeader: {
+        type: 'boolean',
+        label: 'Pin Version Header',
+        category: 'UI',
+        requiresRestart: true,
+        default: false,
+        description:
+          'Pin the configured logo, Hachimi version and authentication status to the top of the terminal.',
+        showInDialog: false,
+      },
       useAlternateBuffer: {
         type: 'boolean',
         label: 'Use Alternate Screen Buffer',

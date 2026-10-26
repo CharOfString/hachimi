@@ -443,6 +443,13 @@ their corresponding top-level category object in your `settings.json` file.
   - **Description:** Show the signed-in user's identity (e.g. email) in the UI.
   - **Default:** `true`
 
+- **`ui.showVersionHeader`** (boolean):
+
+  - **Description:** Pin the configured logo, Hachimi version and authentication
+    status to the top of the terminal.
+  - **Default:** `false`
+  - **Requires restart:** Yes
+
 - **`ui.useAlternateBuffer`** (boolean):
 
   - **Description:** Use an alternate screen buffer for the UI, preserving shell

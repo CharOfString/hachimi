@@ -9,10 +9,11 @@ import { CoreToolCallStatus } from '@google/gemini-cli-core';
 import { HistoryItemDisplay } from './HistoryItemDisplay.js';
 import { UIStateContext, useUIState } from '../contexts/UIStateContext.js';
 import { useAppContext } from '../contexts/AppContext.js';
-import { AppHeader } from './AppHeader.js';
+import { AppHeader, VersionHeader } from './AppHeader.js';
 
 import { useAlternateBuffer } from '../hooks/useAlternateBuffer.js';
 import { useConfig } from '../contexts/ConfigContext.js';
+import { useSettingsStore } from '../contexts/SettingsContext.js';
 import {
   SCROLL_TO_ITEM_END,
   type VirtualizedListRef,
@@ -27,6 +28,7 @@ import type { HistoryItem } from '../types.js';
 
 const MemoizedHistoryItemDisplay = memo(HistoryItemDisplay);
 const MemoizedAppHeader = memo(AppHeader);
+const MemoizedVersionHeader = memo(VersionHeader);
 
 const ToolConfirmationQueueWithBudget = ({
   confirmingTool,
@@ -89,6 +91,10 @@ export const MainContent = () => {
   const config = useConfig();
   const useTerminalBuffer = config.getUseTerminalBuffer();
   const isAlternateBuffer = config.getUseAlternateBuffer();
+  const { settings } = useSettingsStore();
+  const pinVersionHeader =
+    isAlternateBufferOrTerminalBuffer &&
+    settings.merged.ui.showVersionHeader === true;
 
   const confirmingTool = useConfirmingTool();
   const showConfirmationQueue = Boolean(confirmingTool);
@@ -349,6 +355,7 @@ export const MainContent = () => {
             key="app-header"
             version={version}
             showDetails={showHeaderDetails}
+            showVersion={!pinVersionHeader}
           />
         );
       } else if (item.type === 'history') {
@@ -357,7 +364,7 @@ export const MainContent = () => {
         return pendingItems;
       }
     },
-    [showHeaderDetails, version, pendingItems],
+    [pinVersionHeader, showHeaderDetails, version, pendingItems],
   );
 
   const estimatedItemHeight = useCallback(() => 100, []);
@@ -365,7 +372,7 @@ export const MainContent = () => {
   const keyExtractor = useCallback(
     (item: (typeof virtualizedData)[number], _index: number) => {
       if (item.type === 'header') {
-        return `header-${showHeaderDetails}-${uiState.bannerVisible}-${uiState.bannerData?.defaultText ?? ''}-${uiState.bannerData?.warningText ?? ''}-${uiState.updateInfo?.isUpdating}-${uiState.historyRemountKey}`;
+        return `header-${pinVersionHeader}-${showHeaderDetails}-${uiState.bannerVisible}-${uiState.bannerData?.defaultText ?? ''}-${uiState.bannerData?.warningText ?? ''}-${uiState.updateInfo?.isUpdating}-${uiState.historyRemountKey}`;
       }
       if (item.type === 'history') {
         return `${item.item.id}-${uiState.renderMarkdown}-${uiState.historyRemountKey}`;
@@ -373,6 +380,7 @@ export const MainContent = () => {
       return 'pending';
     },
     [
+      pinVersionHeader,
       showHeaderDetails,
       uiState.bannerVisible,
       uiState.bannerData?.defaultText,
@@ -445,6 +453,19 @@ export const MainContent = () => {
   }
 
   if (isAlternateBufferOrTerminalBuffer) {
+    if (pinVersionHeader) {
+      return (
+        <Box flexDirection="column" flexGrow={1} overflow="hidden">
+          <Box flexDirection="column" flexShrink={0}>
+            <MemoizedVersionHeader version={version} />
+          </Box>
+          <Box flexDirection="column" flexGrow={1} overflow="hidden">
+            {scrollableList}
+          </Box>
+        </Box>
+      );
+    }
+
     return scrollableList;
   }
 

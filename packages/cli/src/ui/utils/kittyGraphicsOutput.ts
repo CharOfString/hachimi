@@ -5,6 +5,7 @@
  */
 
 import { kittyCommand, kittyUpload } from './logo.js';
+import { expandCursorLineMoves } from './terminalCompat.js';
 
 const placements = new Map<
   string,
@@ -75,7 +76,7 @@ export function withKittyGraphics(
               ? chunk
               : Buffer.from(chunk).toString('utf8');
 
-          args[0] = renderKittyPlacements(text);
+          args[0] = expandCursorLineMoves(renderKittyPlacements(text));
 
           return target.write(...args);
         };

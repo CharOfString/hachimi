@@ -1084,7 +1084,9 @@ export async function loadCliConfig(
     interactive,
     trustedFolder,
     useBackgroundColor: settings.ui?.useBackgroundColor,
-    useAlternateBuffer: settings.ui?.useAlternateBuffer,
+    // Pinning the version header (/showver) needs a fixed-height screen.
+    useAlternateBuffer:
+      settings.ui?.useAlternateBuffer || settings.ui?.showVersionHeader,
     useTerminalBuffer: settings.ui?.terminalBuffer,
     useRenderProcess: settings.ui?.renderProcess,
     useRipgrep: settings.tools?.useRipgrep,

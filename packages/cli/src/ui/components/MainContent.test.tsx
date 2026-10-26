@@ -90,9 +90,19 @@ vi.mock('../hooks/useConfirmingTool.js', () => ({
 }));
 
 vi.mock('./AppHeader.js', () => ({
-  AppHeader: ({ showDetails = true }: { showDetails?: boolean }) => (
-    <Text>{showDetails ? 'AppHeader(full)' : 'AppHeader(minimal)'}</Text>
+  AppHeader: ({
+    showDetails = true,
+    showVersion = true,
+  }: {
+    showDetails?: boolean;
+    showVersion?: boolean;
+  }) => (
+    <Text>
+      {showDetails ? 'AppHeader(full)' : 'AppHeader(minimal)'}
+      {showVersion ? '' : '(unversioned)'}
+    </Text>
   ),
+  VersionHeader: () => <Text>VersionHeader(pinned)</Text>,
 }));
 
 const mockScrollableList = vi.fn();
@@ -427,6 +437,22 @@ describe('MainContent', () => {
     expect(output).toContain('AppHeader(full)');
     expect(output).toContain('Hello');
     expect(output).toContain('Hi there');
+    unmount();
+  });
+
+  it('pins the version header above history when showVersionHeader is on', async () => {
+    vi.mocked(useAlternateBuffer).mockReturnValue(true);
+    const { lastFrame, unmount } = await renderWithProviders(<MainContent />, {
+      uiState: defaultMockUiState as Partial<UIState>,
+      settings: createMockSettings({ ui: { showVersionHeader: true } }),
+    });
+    await waitFor(() => expect(lastFrame()).toContain('Hello'));
+    const output = lastFrame();
+
+    expect(output).toContain('AppHeader(full)(unversioned)');
+    expect(output.indexOf('VersionHeader(pinned)')).toBeLessThan(
+      output.indexOf('AppHeader'),
+    );
     unmount();
   });
 

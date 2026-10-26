@@ -542,6 +542,13 @@
           "default": true,
           "type": "boolean"
         },
+        "showVersionHeader": {
+          "title": "Pin Version Header",
+          "description": "Pin the configured logo, Hachimi version and authentication status to the top of the terminal.",
+          "markdownDescription": "Pin the configured logo, Hachimi version and authentication status to the top of the terminal.\n\n- Category: `UI`\n- Requires restart: `yes`\n- Default: `false`",
+          "default": false,
+          "type": "boolean"
+        },
         "useAlternateBuffer": {
           "title": "Use Alternate Screen Buffer",
           "description": "Use an alternate screen buffer for the UI, preserving shell history.",
