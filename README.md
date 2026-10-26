@@ -1,3 +1,23 @@
+# Hachimi CLI
+
+Gemini CLI fork with a separate npm package (`hachimi-cli`) and command
+(`hachimi`), so it can be installed alongside the original `gemini`.
+
+Build and install from this checkout (Node.js 20 or newer):
+
+```sh
+npm ci
+npm install -g .
+hachimi --help
+```
+
+The standalone build (`npm run build:binary`) also produces `hachimi` (or
+`hachimi.exe` on Windows). Configuration still uses `.gemini`, `GEMINI.md`, and
+existing `GEMINI_*` environment variables; both commands share these settings.
+The documentation below is inherited from upstream and uses the original names.
+
+---
+
 > [!NOTE]
 >
 > **Unpaid tier and Google One users:** Gemini CLI was replaced by Antigravity

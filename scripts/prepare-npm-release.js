@@ -40,13 +40,13 @@ const rootPkg = readJson('package.json');
 const optionalDependencies = { ...(rootPkg.optionalDependencies || {}) };
 delete optionalDependencies['gemini-cli-devtools'];
 
-// Update @google/gemini-cli package.json for bundled npm release
+// Update hachimi-cli package.json for bundled npm release
 const cliPkgPath = 'packages/cli/package.json';
 const cliPkg = readJson(cliPkgPath);
 
 cliPkg.files = ['bundle/'];
 cliPkg.bin = {
-  gemini: 'bundle/gemini.js',
+  hachimi: 'bundle/gemini.js',
 };
 
 delete cliPkg.dependencies;

@@ -1,5 +1,5 @@
 {
-  "name": "@google/gemini-cli",
+  "name": "hachimi-cli",
   "version": "0.67.0-nightly.20261020.gb041de017",
   "description": "Gemini CLI",
   "license": "Apache-2.0",
@@ -10,7 +10,7 @@
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "gemini": "dist/index.js"
+    "hachimi": "dist/index.js"
   },
   "scripts": {
     "build": "node ../../scripts/build_package.js",
