@@ -95,7 +95,8 @@
   "files": [
     "bundle/",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "NOTICE"
   ],
   "devDependencies": {
     "@agentclientprotocol/sdk": "0.16.1",

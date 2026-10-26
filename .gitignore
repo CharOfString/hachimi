@@ -69,3 +69,9 @@ temp_agents/
 # conductor extension and planning directories
 conductor/
 .vscode-test/
+
+/packages/cli/NOTICE
+/packages/core/NOTICE
+
+/packages/cli/LICENSE
+/packages/core/LICENSE

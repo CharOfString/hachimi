@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -93,12 +94,9 @@ if (!argv.s) {
 console.log('packing hachimi-cli ...');
 const cliPackageDir = join('packages', 'cli');
 rmSync(join(cliPackageDir, 'dist', 'hachimi-cli-*.tgz'), { force: true });
-execSync(
-  `npm pack -w hachimi-cli --pack-destination ./packages/cli/dist`,
-  {
-    stdio: 'ignore',
-  },
-);
+execSync(`npm pack -w hachimi-cli --pack-destination ./packages/cli/dist`, {
+  stdio: 'ignore',
+});
 
 console.log('packing @google/gemini-cli-core ...');
 const corePackageDir = join('packages', 'core');

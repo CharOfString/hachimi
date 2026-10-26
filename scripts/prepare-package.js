@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -39,6 +40,7 @@ function copyFiles(packageName, filesToCopy) {
 copyFiles('core', {
   'README.md': 'README.md',
   LICENSE: 'LICENSE',
+  NOTICE: 'NOTICE',
   '.npmrc': '.npmrc',
 });
 
@@ -46,6 +48,7 @@ copyFiles('core', {
 copyFiles('cli', {
   'README.md': 'README.md',
   LICENSE: 'LICENSE',
+  NOTICE: 'NOTICE',
 });
 
 console.log('Successfully prepared all packages.');

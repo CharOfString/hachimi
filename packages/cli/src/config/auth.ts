@@ -1,10 +1,16 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { AuthType, loadApiKey } from '@google/gemini-cli-core';
+import {
+  AuthType,
+  loadApiKey,
+  getActiveAccount,
+  loadAccountKey,
+} from '@google/gemini-cli-core';
 import { loadEnvironment, loadSettings } from './settings.js';
 
 export async function validateAuthMethod(
@@ -16,6 +22,13 @@ export async function validateAuthMethod(
     authMethod === AuthType.COMPUTE_ADC
   ) {
     return null;
+  }
+
+  if (authMethod === AuthType.PROVIDER_ACCOUNT) {
+    const account = getActiveAccount();
+    return account && (await loadAccountKey(account.id))
+      ? null
+      : 'Select a provider account and enter its API key in /auth.';
   }
 
   if (authMethod === AuthType.USE_GEMINI) {

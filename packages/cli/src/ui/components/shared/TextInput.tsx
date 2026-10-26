@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -22,6 +23,7 @@ export interface TextInputProps {
   onSubmit?: (value: string) => void;
   onCancel?: () => void;
   focus?: boolean;
+  mask?: boolean;
 }
 
 export function TextInput({
@@ -30,6 +32,7 @@ export function TextInput({
   onSubmit,
   onCancel,
   focus = true,
+  mask = false,
 }: TextInputProps): React.JSX.Element {
   const keyMatchers = useKeyMatchers();
   const containerRef = useRef<DOMElement>(null);
@@ -93,7 +96,10 @@ export function TextInput({
 
   return (
     <Box ref={containerRef} flexDirection="column">
-      {viewportVisualLines.map((lineText, idx) => {
+      {viewportVisualLines.map((rawLineText, idx) => {
+        const lineText = mask
+          ? '•'.repeat(Array.from(rawLineText).length)
+          : rawLineText;
         const currentVisualRow = visualScrollRow + idx;
         const isCursorLine =
           focus && currentVisualRow === cursorVisualRowAbsolute;

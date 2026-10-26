@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -38,6 +39,7 @@ const entitlementsPath = join(root, 'scripts/entitlements.plist');
  * @param {string[]} args
  * @param {object} options
  */
+
 function runCommand(command, args, options = {}) {
   let finalCommand = command;
   let useShell = options.shell || false;
@@ -76,6 +78,7 @@ function runCommand(command, args, options = {}) {
  * Removes existing digital signatures from a binary.
  * @param {string} filePath
  */
+
 function removeSignature(filePath) {
   console.log(`Removing signature from ${filePath}...`);
   const platform = process.platform;

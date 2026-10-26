@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -83,7 +84,10 @@ export default tseslint.config(
   },
   {
     // Rules for packages/*/src and tools/caretaker-agent (TS/TSX)
-    files: ['packages/*/src/**/*.{ts,tsx}', 'tools/caretaker-agent/**/*.{ts,tsx}'],
+    files: [
+      'packages/*/src/**/*.{ts,tsx}',
+      'tools/caretaker-agent/**/*.{ts,tsx}',
+    ],
     plugins: {
       import: importPlugin,
     },
@@ -256,7 +260,8 @@ export default tseslint.config(
         'error',
         {
           name: '@google/gemini-cli-core',
-          message: 'Please use relative imports within the @google/gemini-cli-core package.',
+          message:
+            'Please use relative imports within the @google/gemini-cli-core package.',
         },
       ],
     },
@@ -268,7 +273,8 @@ export default tseslint.config(
         'error',
         {
           name: '@google/gemini-cli',
-          message: 'Please use relative imports within the @google/gemini-cli package.',
+          message:
+            'Please use relative imports within the @google/gemini-cli package.',
         },
       ],
     },
@@ -280,7 +286,8 @@ export default tseslint.config(
         'error',
         {
           name: '@google/gemini-cli-sdk',
-          message: 'Please use relative imports within the @google/gemini-cli-sdk package.',
+          message:
+            'Please use relative imports within the @google/gemini-cli-sdk package.',
         },
       ],
     },
@@ -310,10 +317,14 @@ export default tseslint.config(
           source: 'string',
           content: [
             '@license',
-            'Copyright (year) Google LLC',
+            'Copyright (year) (owner)',
             'SPDX-License-Identifier: Apache-2.0',
           ].join('\n'),
           patterns: {
+            owner: {
+              pattern: String.raw`(?:Google LLC|Qwen Team|CharOfString <root@charofstring\.cc>)(?:\n \* Modifications Copyright 2026 CharOfString <root@charofstring\.cc>)?`,
+              defaultValue: 'CharOfString <root@charofstring.cc>',
+            },
             year: {
               pattern: `202[5-${currentYear.toString().slice(-1)}]`,
               defaultValue: currentYear.toString(),
@@ -419,8 +430,21 @@ export default tseslint.config(
       'no-console': 'off',
     },
   },
-  // Prettier config must be last
   prettierConfig,
+  {
+    files: [
+      'packages/core/src/providers/**/*.{ts,tsx}',
+      'packages/cli/src/ui/auth/ProviderAccountsDialog{,.test}.tsx',
+    ],
+    rules: {
+      curly: ['error', 'all'],
+      'padding-line-between-statements': [
+        'error',
+        { blankLine: 'always', prev: 'block-like', next: '*' },
+      ],
+      'lines-between-class-members': ['error', 'always'],
+    },
+  },
   // extra settings for scripts that we run directly with node
   {
     files: ['./integration-tests/**/*.js'],

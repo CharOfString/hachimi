@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -23,6 +24,7 @@ export { AgentChatHistory, type HistoryTurn } from './agentChatHistory.js';
 import { AgentChatHistory, type HistoryTurn } from './agentChatHistory.js';
 
 import { randomUUID } from 'node:crypto';
+import { PROVIDER_REASONING_PREFIX } from '../providers/types.js';
 import { toParts } from '../code_assist/converter.js';
 import {
   retryWithBackoff,
@@ -93,6 +95,7 @@ export type StreamEvent =
 /**
  * Options for retrying mid-stream errors (e.g. invalid content or API disconnects).
  */
+
 interface MidStreamRetryOptions {
   /** Total number of attempts to make (1 initial + N retries). */
   maxAttempts: number;
@@ -114,6 +117,7 @@ export const SYNTHETIC_THOUGHT_SIGNATURE = 'skip_thought_signature_validator';
  * Stands in for a model turn that never arrived because the stream failed
  * after a tool response was already committed to history.
  */
+
 export const INTERRUPTED_RESPONSE_PLACEHOLDER =
   '[The previous response was interrupted before it completed.]';
 
@@ -1175,7 +1179,11 @@ export class GeminiChat {
       lastConfig = config;
       lastContentsToUse = normalizedContents;
 
-      const finalContents = stripToolCallIdPrefixes(normalizedContents);
+      const finalContents = stripToolCallIdPrefixes(
+        normalizedContents,
+        this.context.config.getContentGeneratorConfig?.()?.providerAccount
+          ?.protocol === 'openai',
+      );
 
       return this.context.config.getContentGenerator().generateContentStream(
         {
@@ -1935,12 +1943,22 @@ export function ensureTerminalUserTurn(contents: Content[]): Content[] {
   return [...contents, { role: 'user', parts }];
 }
 
-export function stripToolCallIdPrefixes(contents: Content[]): Content[] {
+export function stripToolCallIdPrefixes(
+  contents: Content[],
+  preserveProviderReasoning = false,
+): Content[] {
   const stripped = contents
     .map((content) => {
       const parts = (content.parts || [])
         .map((part) => {
           const newPart = { ...part };
+          if (
+            !preserveProviderReasoning &&
+            newPart.thoughtSignature?.startsWith(PROVIDER_REASONING_PREFIX)
+          ) {
+            delete newPart.thoughtSignature;
+          }
+
           if (newPart.functionCall) {
             const fc = newPart.functionCall;
             const name = fc.name?.trim() || 'generic_tool';

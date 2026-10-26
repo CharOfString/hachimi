@@ -1,0 +1,35 @@
+Hachimi CLI
+Copyright 2026 CharOfString <root@charofstring.cc>
+
+This project is a modified distribution of Gemini CLI, licensed under the
+Apache License, Version 2.0. Original Google copyright and license notices
+remain in the source files and LICENSE.
+
+Gemini CLI
+Copyright 2025 Google LLC
+Source: https://github.com/google-gemini/gemini-cli
+Upstream base: cd1b45c2db0a5ea7b7fc3b67c1ba5879601d6005 (see repository history for the full revision).
+
+Qwen Code provider presets
+Copyright 2025 Google LLC
+Copyright 2025 Qwen
+Copyright 2026 Qwen Team
+Source: https://github.com/QwenLM/qwen-code
+Reference revision: 64b2554801e45bef1d1482325cdf35d80a0ba79e
+Source files: packages/core/src/providers/presets/*.ts
+Adapted file: packages/core/src/providers/presets.ts
+License: Apache-2.0; see third_party/qwen-code/LICENSE in source distributions
+and licenses/qwen-code-LICENSE under bundle/ or dist/ in npm packages.
+Standalone distributions carry licenses/qwen-code-LICENSE beside the executable.
+
+Modifications by CharOfString <root@charofstring.cc>:
+- Renamed the CLI and npm package to support installation alongside Gemini CLI.
+- Added named provider accounts, credential storage, selection and setup UI.
+- Adapted Qwen provider preset data to Hachimi's account and model types,
+  preserving endpoint choices and selected chat-model metadata while omitting
+  dedicated image-generation routes.
+- Added protocol adapters and integrated model/context selection with the CLI.
+- Updated tests, documentation, source formatting and distribution notices.
+
+Product and provider names identify compatibility or the origin of the work.
+They do not imply endorsement by Google, Qwen or the listed providers.

@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -14,6 +15,13 @@ function updatePackageJson(packagePath, updateFn) {
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
   updateFn(packageJson);
   fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
+}
+
+for (const name of ['LICENSE', 'NOTICE']) {
+  fs.copyFileSync(
+    path.resolve(rootDir, name),
+    path.resolve(rootDir, 'packages/cli', name),
+  );
 }
 
 // Copy bundle directory into packages/cli
@@ -39,10 +47,9 @@ fs.writeFileSync(
 );
 console.log('Wrote .npmrc for @google-gemini scope to packages/core/');
 
-// Update hachimi-cli
 updatePackageJson('packages/cli/package.json', (pkg) => {
   pkg.name = '@google-gemini/hachimi-cli';
-  pkg.files = ['bundle/'];
+  pkg.files = ['bundle/', 'LICENSE', 'NOTICE'];
   pkg.bin = {
     hachimi: 'bundle/gemini.js',
   };

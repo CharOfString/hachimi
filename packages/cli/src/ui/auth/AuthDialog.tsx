@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -16,11 +17,14 @@ import {
 } from '../../config/settings.js';
 import {
   AuthType,
+  DEFAULT_GEMINI_MODEL_AUTO,
   clearCachedCredentialFile,
   type Config,
   debugLogger,
 } from '@google/gemini-cli-core';
 import { useKeypress } from '../hooks/useKeypress.js';
+import { ProviderAccountsDialog } from './ProviderAccountsDialog.js';
+import { getActiveAccount, selectAccount } from '@google/gemini-cli-core';
 import { AuthState } from '../types.js';
 import { validateAuthMethodWithSettings } from './useAuth.js';
 import { relaunchApp } from '../../utils/processUtils.js';
@@ -42,8 +46,14 @@ export function AuthDialog({
   onAuthError,
   setAuthContext,
 }: AuthDialogProps): React.JSX.Element {
+  const [managingProviders, setManagingProviders] = useState(false);
   const [exiting, setExiting] = useState(false);
   let items = [
+    {
+      label: 'Provider accounts (DeepSeek, presets, custom API)',
+      value: AuthType.PROVIDER_ACCOUNT,
+      key: AuthType.PROVIDER_ACCOUNT,
+    },
     {
       label: 'Sign in with Google',
       value: AuthType.LOGIN_WITH_GOOGLE,
@@ -120,6 +130,15 @@ export function AuthDialog({
         return;
       }
       if (authType) {
+        if (getActiveAccount()) {
+          selectAccount(undefined);
+          settings.refreshProviderAccount();
+          config.setModel(
+            settings.merged.model.name ?? DEFAULT_GEMINI_MODEL_AUTO,
+            true,
+          );
+        }
+
         const needsRestart =
           authType === AuthType.LOGIN_WITH_GOOGLE ||
           (authType === AuthType.USE_VERTEX_AI &&
@@ -179,6 +198,11 @@ export function AuthDialog({
   );
 
   const handleAuthSelect = async (authMethod: AuthType) => {
+    if (authMethod === AuthType.PROVIDER_ACCOUNT) {
+      setManagingProviders(true);
+      return;
+    }
+
     const error = await validateAuthMethodWithSettings(
       authMethod,
       settings,
@@ -216,8 +240,23 @@ export function AuthDialog({
       }
       return false;
     },
-    { isActive: true },
+    { isActive: !managingProviders },
   );
+
+  if (managingProviders) {
+    return (
+      <ProviderAccountsDialog
+        config={config}
+        settings={settings}
+        onBack={() => setManagingProviders(false)}
+        onDone={() => {
+          onAuthError(null);
+          setAuthContext({});
+          setAuthState(AuthState.Authenticated);
+        }}
+      />
+    );
+  }
 
   if (exiting) {
     return (

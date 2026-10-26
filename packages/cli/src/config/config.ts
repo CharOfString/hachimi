@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -118,6 +119,7 @@ export interface CliArgs {
 /**
  * Helper to coerce comma-separated or multiple flag values into a flat array.
  */
+
 const coerceCommaSeparated = (values: string[]): string[] => {
   if (values.length === 1 && values[0] === '') {
     return [''];
@@ -134,6 +136,7 @@ const coerceCommaSeparated = (values: string[]): string[] => {
  * Pre-parses the command line arguments to find the worktree flag.
  * Used for early setup before full argument parsing with settings.
  */
+
 export function getWorktreeArg(argv: string[]): string | undefined {
   const result = yargs(hideBin(argv))
     .help(false)

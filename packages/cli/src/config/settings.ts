@@ -1,8 +1,11 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
+
+import { getActiveAccount, selectAccount } from '@google/gemini-cli-core';
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -99,6 +102,7 @@ const AUTH_ENV_VAR_WHITELIST = [
  * Sanitizes an environment variable value to prevent shell injection.
  * Restricts values to a safe character set: alphanumeric, -, _, ., /
  */
+
 export function sanitizeEnvVar(value: string): string {
   return value.replace(/[^a-zA-Z0-9\-_./]/g, '');
 }
@@ -439,7 +443,25 @@ export class LoadedSettings {
         this._remoteAdminSettings?.admin ?? {},
       ) as MergedSettings['admin'];
     }
+
+    const account = getActiveAccount();
+    if (
+      account &&
+      !merged.security.auth.useExternal &&
+      (!merged.security.auth.enforcedType ||
+        merged.security.auth.enforcedType === AuthType.PROVIDER_ACCOUNT)
+    ) {
+      merged.security.auth.selectedType = AuthType.PROVIDER_ACCOUNT;
+      merged.model.name = account.model;
+    }
+
     return merged;
+  }
+
+  refreshProviderAccount(): void {
+    this._merged = this.computeMergedSettings();
+    this._snapshot = this.computeSnapshot();
+    coreEvents.emitSettingsChanged();
   }
 
   private computeSnapshot(): LoadedSettingsSnapshot {
@@ -1484,7 +1506,17 @@ export function saveModelChange(
   model: string,
 ): void {
   try {
-    loadedSettings.setValue(SettingScope.User, 'model.name', model);
+    const account = getActiveAccount();
+    if (
+      account &&
+      loadedSettings.merged.security.auth.selectedType ===
+        AuthType.PROVIDER_ACCOUNT
+    ) {
+      selectAccount(account.id, model);
+      loadedSettings.refreshProviderAccount();
+    } else {
+      loadedSettings.setValue(SettingScope.User, 'model.name', model);
+    }
   } catch (error) {
     const detailedErrorMessage = getFsErrorMessage(error);
     coreEvents.emitFeedback(

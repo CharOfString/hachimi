@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -14,13 +15,25 @@ import {
   GEMMA_4_26B_A4B_IT_MODEL,
 } from '../config/models.js';
 
+import type { ProviderAccount } from '../providers/types.js';
+
 type Model = string;
 type TokenCount = number;
 
 export const DEFAULT_TOKEN_LIMIT = 1_048_576;
 export const GEMMA_4_TOKEN_LIMIT = 256_000;
 
-export function tokenLimit(model: Model): TokenCount {
+export function tokenLimit(
+  model: Model,
+  account?: ProviderAccount,
+): TokenCount {
+  if (account) {
+    const selected =
+      account.models.find((entry) => entry.id === model) ??
+      account.models.find((entry) => entry.id === account.model);
+    return selected?.contextWindowSize ?? 32768;
+  }
+
   // Add other models as they become relevant or if specified by config
   // Pulled from https://ai.google.dev/gemini-api/docs/models
   switch (model) {

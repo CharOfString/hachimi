@@ -20,7 +20,9 @@
     "typecheck": "tsc --noEmit"
   },
   "files": [
-    "dist"
+    "dist",
+    "NOTICE",
+    "LICENSE"
   ],
   "dependencies": {
     "@a2a-js/sdk": "0.3.11",

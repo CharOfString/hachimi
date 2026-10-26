@@ -1,10 +1,12 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
 import { describe, it, expect } from 'vitest';
+import type { ProviderAccount } from '../providers/types.js';
 import { tokenLimit, DEFAULT_TOKEN_LIMIT } from './tokenLimits.js';
 import {
   DEFAULT_GEMINI_FLASH_LITE_MODEL,
@@ -15,6 +17,22 @@ import {
 } from '../config/models.js';
 
 describe('tokenLimit', () => {
+  it('uses account context limits even for auxiliary Gemini model aliases', () => {
+    const account: ProviderAccount = {
+      id: 'test',
+      name: 'test',
+      providerId: 'custom',
+      protocol: 'openai',
+      baseUrl: 'https://example.com',
+      model: 'small',
+      models: [{ id: 'small', contextWindowSize: 16384 }, { id: 'unknown' }],
+    };
+
+    expect(tokenLimit('small', account)).toBe(16384);
+    expect(tokenLimit('gemini-flash', account)).toBe(16384);
+    expect(tokenLimit('unknown', account)).toBe(32768);
+  });
+
   it('should return the correct token limit for default models', () => {
     expect(tokenLimit(DEFAULT_GEMINI_MODEL)).toBe(1_048_576);
     expect(tokenLimit(DEFAULT_GEMINI_FLASH_MODEL)).toBe(1_048_576);

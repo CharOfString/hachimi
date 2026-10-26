@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2026 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -297,6 +298,7 @@ export interface AgentRunConfig {
  * Override configuration for a specific agent.
  * Generic fields (modelConfig, runConfig, enabled) are standard across all agents.
  */
+
 export interface AgentOverride {
   modelConfig?: ModelConfig;
   runConfig?: AgentRunConfig;
@@ -369,6 +371,7 @@ export interface CustomTheme {
  * IMPORTANT: Keep in sync with the browser settings schema in
  * packages/cli/src/config/settingsSchema.ts (agents.browser.properties).
  */
+
 export interface BrowserAgentCustomConfig {
   /**
    * Session mode:
@@ -3855,7 +3858,8 @@ export class Config implements McpContext, AgentLoopContext {
     return Math.min(
       // Estimate remaining context window in characters (1 token ~= 4 chars).
       4 *
-        (tokenLimit(this.model) - uiTelemetryService.getLastPromptTokenCount()),
+        (tokenLimit(this.model, this.contentGeneratorConfig?.providerAccount) -
+          uiTelemetryService.getLastPromptTokenCount()),
       this.truncateToolOutputThreshold,
     );
   }

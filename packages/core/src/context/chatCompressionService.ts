@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -42,11 +43,13 @@ import { PreCompressTrigger } from '../hooks/types.js';
  * Default threshold for compression token count as a fraction of the model's
  * token limit. If the chat history exceeds this threshold, it will be compressed.
  */
+
 export const DEFAULT_COMPRESSION_TOKEN_THRESHOLD = 0.5;
 
 /**
  * Number of recent tool response turns that must be preserved at full fidelity.
  */
+
 export const RECENT_TURNS_PROTECTED = 3;
 
 /**
@@ -504,7 +507,12 @@ export class ChatCompressionService {
         (await config.getCompressionThreshold()) ??
         DEFAULT_COMPRESSION_TOKEN_THRESHOLD;
       const isOverModelThreshold =
-        originalTokenCount >= threshold * tokenLimit(model);
+        originalTokenCount >=
+        threshold *
+          tokenLimit(
+            model,
+            config.getContentGeneratorConfig?.()?.providerAccount,
+          );
 
       if (!isOverModelThreshold) {
         return {
@@ -580,7 +588,8 @@ export class ChatCompressionService {
     );
 
     const historyForSummarizer =
-      originalToCompressTokenCount < tokenLimit(model)
+      originalToCompressTokenCount <
+      tokenLimit(model, config.getContentGeneratorConfig?.()?.providerAccount)
         ? originalHistoryToCompress
         : historyToCompressTruncated;
 

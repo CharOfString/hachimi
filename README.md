@@ -16,6 +16,10 @@ The standalone build (`npm run build:binary`) also produces `hachimi` (or
 existing `GEMINI_*` environment variables; both commands share these settings.
 The documentation below is inherited from upstream and uses the original names.
 
+Use `/auth` → **Provider accounts** for Qwen-derived presets, multiple accounts,
+and custom endpoints. Use `/model` to switch the active account's models. See
+[provider account management](docs/hachimi/provider-accounts.md).
+
 ---
 
 > [!NOTE]

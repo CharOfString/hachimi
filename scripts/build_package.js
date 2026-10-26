@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -18,7 +19,7 @@
 // limitations under the License.
 
 import { execSync } from 'node:child_process';
-import { writeFileSync, existsSync, cpSync, rmSync } from 'node:fs';
+import { writeFileSync, existsSync, cpSync, rmSync, mkdirSync } from 'node:fs';
 import { join, basename } from 'node:path';
 
 if (!process.cwd().includes('packages')) {
@@ -54,6 +55,21 @@ if (packageName === 'core') {
     cpSync(docsSource, docsTarget, { recursive: true, dereference: true });
     console.log('Copied documentation to dist/docs');
   }
+}
+
+if (packageName === 'core' || packageName === 'cli') {
+  const root = join(process.cwd(), '..', '..');
+  const licenseDir = join(process.cwd(), 'dist', 'licenses');
+  mkdirSync(licenseDir, { recursive: true });
+
+  for (const name of ['LICENSE', 'NOTICE']) {
+    cpSync(join(root, name), join(process.cwd(), name));
+  }
+
+  cpSync(
+    join(root, 'third_party/qwen-code/LICENSE'),
+    join(licenseDir, 'qwen-code-LICENSE'),
+  );
 }
 
 // touch dist/.last_build

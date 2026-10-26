@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -102,11 +103,13 @@ import {
 } from '../tools/definitions/base-declarations.js';
 
 /** A callback function to report on agent activity. */
+
 export type ActivityCallback = (activity: SubagentActivityEvent) => void;
 
 const GRACE_PERIOD_MS = 60 * 1000; // 1 min
 
 /** The possible outcomes of a single agent turn. */
+
 type AgentTurnResult =
   | {
       status: 'continue';
@@ -922,7 +925,10 @@ export class LocalAgentExecutor<TOutput extends z.ZodTypeAny> {
     const threshold =
       (await this.context.config.getCompressionThreshold()) ??
       DEFAULT_COMPRESSION_TOKEN_THRESHOLD;
-    const modelLimit = tokenLimit(model);
+    const modelLimit = tokenLimit(
+      model,
+      this.context.config.getContentGeneratorConfig?.()?.providerAccount,
+    );
 
     const lastPromptTokenCount = chat.getLastPromptTokenCount();
     const currentHistory = chat.getHistory(false);

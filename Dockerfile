@@ -84,7 +84,6 @@ RUN mkdir -p /home/node/.gemini \
 # switch to non-root user node
 USER node
 
-# Install hachimi-cli; keep a container-only alias for the sandbox launcher.
 COPY --chown=node:node packages/cli/dist/hachimi-cli-*.tgz /tmp/gemini-cli.tgz
 COPY --chown=node:node packages/core/dist/google-gemini-cli-core-*.tgz /tmp/gemini-core.tgz
 RUN npm install -g /tmp/gemini-core.tgz \

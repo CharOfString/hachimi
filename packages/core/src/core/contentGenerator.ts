@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -32,10 +33,14 @@ import { getVersion, resolveModel } from '../../index.js';
 import type { LlmRole } from '../telemetry/llmRole.js';
 import { ModelMappingContentGenerator } from './modelMappingContentGenerator.js';
 import { getBackendModelMappings } from '../config/models.js';
+import { loadActiveAccountCredentials } from '../providers/accounts.js';
+import type { ProviderAccount } from '../providers/types.js';
+import { ProviderContentGenerator } from '../providers/contentGenerator.js';
 
 /**
  * Interface abstracting the core functionalities for generating content and counting tokens.
  */
+
 export interface ContentGenerator {
   generateContent(
     request: GenerateContentParameters,
@@ -61,6 +66,7 @@ export interface ContentGenerator {
 }
 
 export enum AuthType {
+  PROVIDER_ACCOUNT = 'hachimi-provider-account',
   LOGIN_WITH_GOOGLE = 'oauth-personal',
   USE_GEMINI = 'gemini-api-key',
   USE_VERTEX_AI = 'vertex-ai',
@@ -77,6 +83,7 @@ export enum AuthType {
  * 2. GOOGLE_GENAI_USE_VERTEXAI=true -> USE_VERTEX_AI
  * 3. GEMINI_API_KEY -> USE_GEMINI
  */
+
 export function getAuthTypeFromEnv(): AuthType | undefined {
   if (process.env['GOOGLE_GENAI_USE_GCA'] === 'true') {
     return AuthType.LOGIN_WITH_GOOGLE;
@@ -100,6 +107,7 @@ export function getAuthTypeFromEnv(): AuthType | undefined {
 }
 
 export type ContentGeneratorConfig = {
+  providerAccount?: ProviderAccount;
   apiKey?: string;
   vertexai?: boolean;
   authType?: AuthType;
@@ -171,6 +179,14 @@ export async function createContentGeneratorConfig(
     return contentGeneratorConfig;
   }
 
+  if (authType === AuthType.PROVIDER_ACCOUNT) {
+    const { account, apiKey: accountKey } =
+      await loadActiveAccountCredentials();
+    contentGeneratorConfig.providerAccount = account;
+    contentGeneratorConfig.apiKey = accountKey;
+    return contentGeneratorConfig;
+  }
+
   const geminiApiKey =
     apiKey || getEnv('GEMINI_API_KEY') || (await loadApiKey()) || undefined;
   const googleApiKey = getEnv('GOOGLE_API_KEY') || undefined;
@@ -225,6 +241,47 @@ export async function createContentGenerator(
         gcConfig.fakeResponses,
       );
       return new LoggingContentGenerator(fakeGenerator, gcConfig);
+    }
+
+    if (config.authType === AuthType.PROVIDER_ACCOUNT) {
+      const account = config.providerAccount;
+      if (!account || !config.apiKey) {
+        throw new Error('Provider account is not configured.');
+      }
+
+      if (account.protocol === 'gemini') {
+        const client = new GoogleGenAI({
+          apiKey: config.apiKey,
+          httpOptions: { baseUrl: account.baseUrl },
+        });
+
+        const model = () =>
+          account.models.some((m) => m.id === gcConfig.getModel())
+            ? gcConfig.getModel()
+            : account.model;
+        return new LoggingContentGenerator(
+          {
+            generateContent: (request) =>
+              client.models.generateContent({ ...request, model: model() }),
+            generateContentStream: (request) =>
+              client.models.generateContentStream({
+                ...request,
+                model: model(),
+              }),
+            countTokens: (request) =>
+              client.models.countTokens({ ...request, model: model() }),
+            embedContent: (request) => client.models.embedContent(request),
+          },
+          gcConfig,
+        );
+      }
+
+      return new LoggingContentGenerator(
+        new ProviderContentGenerator(account, config.apiKey, () =>
+          gcConfig.getModel(),
+        ),
+        gcConfig,
+      );
     }
     const version = await getVersion();
     const model = resolveModel(

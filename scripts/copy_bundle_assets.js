@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -30,6 +31,17 @@ const bundleDir = join(root, 'bundle');
 if (!existsSync(bundleDir)) {
   mkdirSync(bundleDir);
 }
+
+for (const name of ['LICENSE', 'NOTICE']) {
+  copyFileSync(join(root, name), join(bundleDir, name));
+}
+
+const licenseDir = join(bundleDir, 'licenses');
+mkdirSync(licenseDir, { recursive: true });
+copyFileSync(
+  join(root, 'third_party/qwen-code/LICENSE'),
+  join(licenseDir, 'qwen-code-LICENSE'),
+);
 
 // 1. Copy Sandbox definitions (.sb)
 const sbFiles = glob.sync('packages/**/*.sb', { cwd: root });

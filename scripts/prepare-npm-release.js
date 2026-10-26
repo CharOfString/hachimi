@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -17,6 +18,13 @@ function writeJson(filePath, data) {
   fs.writeFileSync(
     path.resolve(rootDir, filePath),
     JSON.stringify(data, null, 2),
+  );
+}
+
+for (const name of ['LICENSE', 'NOTICE']) {
+  fs.copyFileSync(
+    path.resolve(rootDir, name),
+    path.resolve(rootDir, 'packages/cli', name),
   );
 }
 
@@ -40,11 +48,10 @@ const rootPkg = readJson('package.json');
 const optionalDependencies = { ...(rootPkg.optionalDependencies || {}) };
 delete optionalDependencies['gemini-cli-devtools'];
 
-// Update hachimi-cli package.json for bundled npm release
 const cliPkgPath = 'packages/cli/package.json';
 const cliPkg = readJson(cliPkgPath);
 
-cliPkg.files = ['bundle/'];
+cliPkg.files = ['bundle/', 'LICENSE', 'NOTICE'];
 cliPkg.bin = {
   hachimi: 'bundle/gemini.js',
 };
