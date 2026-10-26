@@ -67,6 +67,7 @@
 - Send you a notification while it asks something to approve.
 - You may now customize the logo w/ your own ACSII art, or even PNG if your terminal supports Kitty graphics protocol.
 - You may set global output language.
+- You may select model effort. (ported from [qwen-code](https://github.com/qwenLM/qwen-code)).
 
 
 
@@ -208,6 +209,12 @@ You may simply create a `~/.gemini/LANGUAGE_PREFERENCE.md` and write a prompt in
 
 ```
 Please response in ZH_CN while keeping all comments in English
+```
+
+#### Set Effort
+To set effort, please run this command inside hachimi:
+```
+> /effort
 ```
 
 <!-- ROADMAP -->

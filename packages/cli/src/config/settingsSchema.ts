@@ -1142,6 +1142,29 @@ const SETTINGS_SCHEMA = {
         description: 'The Gemini model to use for conversations.',
         showInDialog: true,
       },
+      reasoningEffort: {
+        type: 'enum',
+        label: 'Reasoning Effort',
+        category: 'Model',
+        requiresRestart: false,
+        default: undefined as
+          | 'low'
+          | 'medium'
+          | 'high'
+          | 'xhigh'
+          | 'max'
+          | undefined,
+        description:
+          "How hard reasoning models think. Mapped and clamped to each model's supported levels; unset keeps each model's default. Configure with /effort.",
+        showInDialog: false,
+        options: [
+          { value: 'low', label: 'Low' },
+          { value: 'medium', label: 'Medium' },
+          { value: 'high', label: 'High' },
+          { value: 'xhigh', label: 'Extra high' },
+          { value: 'max', label: 'Max' },
+        ],
+      },
       maxSessionTurns: {
         type: 'number',
         label: 'Max Session Turns',

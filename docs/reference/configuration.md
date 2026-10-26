@@ -571,6 +571,14 @@ their corresponding top-level category object in your `settings.json` file.
   - **Description:** The Gemini model to use for conversations.
   - **Default:** `undefined`
 
+- **`model.reasoningEffort`** (enum):
+
+  - **Description:** How hard reasoning models think. Mapped and clamped to each
+    model's supported levels; unset keeps each model's default. Configure with
+    /effort.
+  - **Default:** `undefined`
+  - **Values:** `"low"`, `"medium"`, `"high"`, `"xhigh"`, `"max"`
+
 - **`model.maxSessionTurns`** (number):
 
   - **Description:** Maximum number of user/model/tool turns to keep in a

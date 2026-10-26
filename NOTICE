@@ -10,7 +10,7 @@ Copyright 2025 Google LLC
 Source: https://github.com/google-gemini/gemini-cli
 Upstream base: cd1b45c2db0a5ea7b7fc3b67c1ba5879601d6005 (see repository history for the full revision).
 
-Qwen Code provider presets and approval workflow
+Qwen Code provider presets, approval workflow and reasoning effort
 Copyright 2025 Google LLC
 Copyright 2025 Qwen
 Copyright 2026 Qwen Team
@@ -30,6 +30,13 @@ Language preference reference: packages/cli/src/i18n/languageUtils.ts
 (Qwen's global output-language.md rule file). Hachimi implementation:
 packages/core/src/utils/languagePreference.ts; no Qwen source or prompt text
 is imported.
+Reasoning effort source file: packages/core/src/core/reasoning-effort.ts
+(effort ladder, ranks, input normalization and clamping), adapted in
+packages/core/src/core/reasoningEffort.ts. Design reference:
+docs/design/2026-06-30-unified-reasoning-effort-cli.md. Provider and Gemini
+mappings and the /effort command (packages/cli/src/ui/commands/effortCommand.ts)
+are Hachimi implementations; Qwen's GPT capability table, effort dialog and
+other provider adapters are not imported.
 License: Apache-2.0; see third_party/qwen-code/LICENSE in source distributions
 and licenses/qwen-code-LICENSE under bundle/ or dist/ in npm packages.
 Standalone distributions carry licenses/qwen-code-LICENSE beside the executable.
@@ -43,6 +50,8 @@ Modifications by CharOfString <root@charofstring.cc>:
 - Added protocol adapters and integrated model/context selection with the CLI.
 - Added a global LANGUAGE_PREFERENCE.md response-language preference that is
   read at session start and overridden with English on the Linux virtual console.
+- Added the /effort command and model.reasoningEffort setting, mapping a unified
+  effort ladder onto provider reasoning_effort and Gemini thinking settings.
 - Updated tests, documentation, source formatting and distribution notices.
 
 Product and provider names identify compatibility or the origin of the work.

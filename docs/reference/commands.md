@@ -169,6 +169,24 @@ Slash commands provide meta-level control over the CLI itself.
 
 - **Description:** Open a dialog for selecting supported editors.
 
+### `/effort`
+
+- **Description:** Show or set how hard reasoning models think. The tier is
+  saved to `model.reasoningEffort` in your user settings and applies from the
+  next request.
+- **Usage:** `/effort [low|medium|high|xhigh|max|default]`
+- **Details:**
+  - Without an argument, shows the current tier and the tiers the active model
+    supports.
+  - A tier the model does not support is clamped to the nearest supported one
+    (the next stronger tier, or the strongest available).
+  - Gemini 3 models map tiers to thinking levels (`xhigh` and `max` use `HIGH`);
+    Gemini 2.5 models map them to thinking budgets.
+  - OpenAI-compatible provider models send `reasoning_effort` when their preset
+    declares effort tiers. Models without declared tiers and Anthropic-protocol
+    accounts are not adjusted.
+  - `default` clears the setting so each model uses its own default.
+
 ### `/extensions`
 
 - **Description:** Manage extensions. See

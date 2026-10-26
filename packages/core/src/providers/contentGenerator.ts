@@ -17,6 +17,10 @@ import {
 import { z } from 'zod';
 import type { ContentGenerator } from '../core/contentGenerator.js';
 import { PROVIDER_REASONING_PREFIX, type ProviderAccount } from './types.js';
+import {
+  getProviderReasoningEffort,
+  type ReasoningEffort,
+} from '../core/reasoningEffort.js';
 
 type Json = Record<string, unknown>;
 
@@ -395,6 +399,8 @@ export class ProviderContentGenerator implements ContentGenerator {
     private readonly account: ProviderAccount,
     private readonly apiKey: string,
     private readonly currentModel: () => string,
+    private readonly currentEffort: () => ReasoningEffort | undefined = () =>
+      undefined,
   ) {}
 
   async countTokens(
@@ -496,8 +502,9 @@ export class ProviderContentGenerator implements ContentGenerator {
 
     if (!anthropic) {
       const reasoning = model.reasoning;
-      if (reasoning?.defaultEffort) {
-        body['reasoning_effort'] = reasoning.defaultEffort;
+      const effort = getProviderReasoningEffort(model, this.currentEffort());
+      if (effort) {
+        body['reasoning_effort'] = effort;
       }
 
       if (reasoning?.disableField === 'thinking') {

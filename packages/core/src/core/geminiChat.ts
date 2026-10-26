@@ -25,6 +25,7 @@ import { AgentChatHistory, type HistoryTurn } from './agentChatHistory.js';
 
 import { randomUUID } from 'node:crypto';
 import { PROVIDER_REASONING_PREFIX } from '../providers/types.js';
+import { applyGeminiReasoningEffort } from './reasoningEffort.js';
 import { toParts } from '../code_assist/converter.js';
 import {
   retryWithBackoff,
@@ -1043,8 +1044,14 @@ export class GeminiChat {
       }
 
       lastModelToUse = modelToUse;
+      const thinkingConfig = applyGeminiReasoningEffort(
+        modelToUse,
+        currentGenerateContentConfig.thinkingConfig,
+        this.context.config.getReasoningEffort?.(),
+      );
       const config: GenerateContentConfig = {
         ...currentGenerateContentConfig,
+        ...(thinkingConfig ? { thinkingConfig } : {}),
         // TODO(12622): Ensure we don't overrwrite these when they are
         // passed via config.
         systemInstruction: this.systemInstruction,

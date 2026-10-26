@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2026 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -258,6 +259,22 @@ describe('<Footer />', () => {
     });
     expect(lastFrame()).toContain(defaultProps.model);
     expect(lastFrame()).toMatch(/\d+% used/);
+    unmount();
+  });
+
+  it('shows the reasoning effort beside the model name when set', async () => {
+    const config = Object.assign(Object.create(mockConfig), {
+      getReasoningEffort: () => 'xhigh',
+    });
+    const { lastFrame, unmount } = await renderWithProviders(<Footer />, {
+      config,
+      width: 120,
+      uiState: {
+        currentModel: defaultProps.model,
+        sessionStats: mockSessionStats,
+      },
+    });
+    expect(lastFrame()).toContain(`${defaultProps.model} · xhigh`);
     unmount();
   });
 

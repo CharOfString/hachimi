@@ -322,7 +322,7 @@ export default tseslint.config(
           ].join('\n'),
           patterns: {
             owner: {
-              pattern: String.raw`(?:Google LLC|Qwen Team|CharOfString <root@charofstring\.cc>)(?:\n \* Modifications Copyright 2026 CharOfString <root@charofstring\.cc>)?`,
+              pattern: String.raw`(?:Google LLC|Qwen Team|Qwen|CharOfString <root@charofstring\.cc>)(?:\n \* Modifications Copyright 2026 CharOfString <root@charofstring\.cc>)?`,
               defaultValue: 'CharOfString <root@charofstring.cc>',
             },
             year: {

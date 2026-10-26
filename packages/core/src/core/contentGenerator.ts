@@ -277,8 +277,11 @@ export async function createContentGenerator(
       }
 
       return new LoggingContentGenerator(
-        new ProviderContentGenerator(account, config.apiKey, () =>
-          gcConfig.getModel(),
+        new ProviderContentGenerator(
+          account,
+          config.apiKey,
+          () => gcConfig.getModel(),
+          () => gcConfig.getReasoningEffort?.(),
         ),
         gcConfig,
       );

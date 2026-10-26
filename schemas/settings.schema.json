@@ -745,6 +745,13 @@
           "markdownDescription": "The Gemini model to use for conversations.\n\n- Category: `Model`\n- Requires restart: `no`",
           "type": "string"
         },
+        "reasoningEffort": {
+          "title": "Reasoning Effort",
+          "description": "How hard reasoning models think. Mapped and clamped to each model's supported levels; unset keeps each model's default. Configure with /effort.",
+          "markdownDescription": "How hard reasoning models think. Mapped and clamped to each model's supported levels; unset keeps each model's default. Configure with /effort.\n\n- Category: `Model`\n- Requires restart: `no`",
+          "type": "string",
+          "enum": ["low", "medium", "high", "xhigh", "max"]
+        },
         "maxSessionTurns": {
           "title": "Max Session Turns",
           "description": "Maximum number of user/model/tool turns to keep in a session. -1 means unlimited.",

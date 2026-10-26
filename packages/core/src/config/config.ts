@@ -26,6 +26,7 @@ import {
   type ContentGeneratorConfig,
   type VertexAiRoutingConfig,
 } from '../core/contentGenerator.js';
+import type { ReasoningEffort } from '../core/reasoningEffort.js';
 import type { OverageStrategy } from '../billing/billing.js';
 import { PromptRegistry } from '../prompts/prompt-registry.js';
 import { ResourceRegistry } from '../resources/resource-registry.js';
@@ -686,6 +687,7 @@ export interface ConfigParameters {
   enableInteractiveShell?: boolean;
   shellBackgroundCompletionBehavior?: string;
   skipNextSpeakerCheck?: boolean;
+  reasoningEffort?: ReasoningEffort;
   shellExecutionConfig?: ShellExecutionConfig;
   extensionManagement?: boolean;
   extensionRegistryURI?: string;
@@ -908,6 +910,7 @@ export class Config implements McpContext, AgentLoopContext {
     | 'notify'
     | 'silent';
   private readonly skipNextSpeakerCheck: boolean;
+  private reasoningEffort: ReasoningEffort | undefined;
   private readonly useBackgroundColor: boolean;
   private readonly useAlternateBuffer: boolean;
   private readonly useTerminalBuffer: boolean;
@@ -1293,6 +1296,7 @@ export class Config implements McpContext, AgentLoopContext {
     }
 
     this.skipNextSpeakerCheck = params.skipNextSpeakerCheck ?? true;
+    this.reasoningEffort = params.reasoningEffort;
     this.shellExecutionConfig = {
       terminalWidth: params.shellExecutionConfig?.terminalWidth ?? 80,
       terminalHeight: params.shellExecutionConfig?.terminalHeight ?? 24,
@@ -3809,6 +3813,15 @@ export class Config implements McpContext, AgentLoopContext {
 
   getSkipNextSpeakerCheck(): boolean {
     return this.skipNextSpeakerCheck;
+  }
+
+  /** The user's `/effort` tier; undefined keeps each model's default. */
+  getReasoningEffort(): ReasoningEffort | undefined {
+    return this.reasoningEffort;
+  }
+
+  setReasoningEffort(effort: ReasoningEffort | undefined): void {
+    this.reasoningEffort = effort;
   }
 
   getRetryFetchErrors(): boolean {

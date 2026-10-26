@@ -301,4 +301,57 @@ describe('provider protocol adapter', () => {
     expect(result.text).toBe('Hello');
     expect(result.candidates?.[0]?.finishReason).toBe(FinishReason.STOP);
   });
+
+  it('sends the user effort clamped to the model, else the preset default', async () => {
+    const effortAccount: ProviderAccount = {
+      ...account,
+      model: 'tiered',
+      models: [
+        {
+          id: 'tiered',
+          reasoning: {
+            thinking: true,
+            efforts: ['high', 'max'],
+            defaultEffort: 'high',
+          },
+        },
+        { id: 'plain' },
+      ],
+    };
+    const sent: Array<Record<string, unknown>> = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_url: string, init: RequestInit) => {
+        sent.push(JSON.parse(String(init.body)));
+        return sse([
+          { choices: [{ delta: { content: 'ok' }, finish_reason: 'stop' }] },
+          '[DONE]',
+        ]);
+      }),
+    );
+    let model = 'tiered';
+    let effort: 'low' | 'xhigh' | undefined;
+    const generator = new ProviderContentGenerator(
+      effortAccount,
+      'key',
+      () => model,
+      () => effort,
+    );
+    const send = () => generator.generateContent({ model, contents: 'hi' });
+
+    await send();
+    effort = 'low';
+    await send();
+    effort = 'xhigh';
+    await send();
+    model = 'plain';
+    await send();
+
+    expect(sent.map((body) => body['reasoning_effort'])).toEqual([
+      'high',
+      'high',
+      'max',
+      undefined,
+    ]);
+  });
 });

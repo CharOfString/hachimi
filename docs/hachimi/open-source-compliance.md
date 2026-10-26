@@ -43,6 +43,19 @@ Linux virtual console detection that forces English. No Qwen source, prompt text
 or language tables are copied, and it adds no dependencies. Google's
 `promptProvider.ts` retains its header and carries the modification notice.
 
+The `/effort` reasoning control adapts the effort ladder, ranks, input
+normalization and rank-based clamp from Qwen's
+`packages/core/src/core/reasoning-effort.ts` at the same revision, following the
+design in `docs/design/2026-06-30-unified-reasoning-effort-cli.md`. The adapted
+file, `packages/core/src/core/reasoningEffort.ts`, retains `Copyright 2025 Qwen`
+and adds the Hachimi modification notice. The provider `reasoning_effort`
+mapping, the Gemini thinking-level and budget mapping, the
+`model.reasoningEffort` setting, the `/effort` command and the footer display
+are Hachimi implementations. Qwen's GPT capability table, effort dialog,
+Anthropic and DashScope adapters are not imported. Google files touched by this
+feature retain their headers and carry the modification notice. No dependencies
+are added.
+
 ## License obligations and distribution
 
 The review uses the authoritative

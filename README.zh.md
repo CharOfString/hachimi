@@ -67,6 +67,7 @@
 - 在需要审批时发送系统通知。
 - 支持自定义 Logo：可使用 ASCII 艺术字，或在终端支持 Kitty 图形协议时使用 PNG 图片。
 - 支持设置全局输出语言。
+- 可选模型思考强度（移植自 [qwen-code](https://github.com/qwenLM/qwen-code)）。
 
 
 
@@ -208,6 +209,12 @@ $ hachimi -p "运行测试并部署" --output-format stream-json
 
 ```
 Please response in ZH_CN while keeping all comments in English
+```
+
+#### 设置模型的思考强度
+要设置思考强度，请执行：
+```
+> /effort
 ```
 
 <!-- ROADMAP -->

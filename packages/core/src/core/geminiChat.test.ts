@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -2308,6 +2309,40 @@ describe('GeminiChat', () => {
         'prompt-id-1',
         LlmRole.MAIN,
       );
+    });
+
+    it('applies the user reasoning effort to the thinking config', async () => {
+      (
+        mockConfig as unknown as { getReasoningEffort: () => string }
+      ).getReasoningEffort = () => 'low';
+      vi.mocked(mockContentGenerator.generateContentStream).mockResolvedValue(
+        (async function* () {
+          yield {
+            candidates: [
+              {
+                content: { parts: [{ text: 'response' }], role: 'model' },
+                finishReason: 'STOP',
+              },
+            ],
+          } as unknown as GenerateContentResponse;
+        })(),
+      );
+
+      const stream = await chat.sendMessageStream(
+        { model: 'test-model' },
+        'hello',
+        'prompt-id-effort',
+        new AbortController().signal,
+        LlmRole.MAIN,
+      );
+      for await (const _ of stream) {
+        // consume stream
+      }
+
+      expect(
+        vi.mocked(mockContentGenerator.generateContentStream).mock.calls[0][0]
+          .config?.thinkingConfig,
+      ).toEqual({ thinkingBudget: 1024 });
     });
 
     it('should send an explicit versioned Flash model unchanged when Gemini 3.5 Flash GA is enabled', async () => {

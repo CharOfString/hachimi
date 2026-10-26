@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2026 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -323,7 +324,10 @@ export const Footer: React.FC = () => {
         break;
       }
       case 'model-name': {
-        const str = getDisplayString(model);
+        const effort = config.getReasoningEffort?.();
+        const str = effort
+          ? `${getDisplayString(model)} · ${effort}`
+          : getDisplayString(model);
         addCol(
           id,
           header,
