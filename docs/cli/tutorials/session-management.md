@@ -20,7 +20,7 @@ The fastest way to pick up your most recent work is with the `--resume` flag (or
 `-r`).
 
 ```bash
-gemini -r
+hachimi -r
 ```
 
 This restores your chat history and memory, so you can say "Continue with the
@@ -55,10 +55,10 @@ You can also manage sessions from the command line:
 
 ```bash
 # List all sessions with their IDs
-gemini --list-sessions
+hachimi --list-sessions
 
 # Delete a specific session by ID or index
-gemini --delete-session 1
+hachimi --delete-session 1
 ```
 
 ### Scenario: Delete session on exit

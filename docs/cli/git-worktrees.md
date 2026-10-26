@@ -47,14 +47,14 @@ CLI in it.
   name (within `.gemini/worktrees/`) and the branch name.
 
   ```bash
-  gemini --worktree feature-search
+  hachimi --worktree feature-search
   ```
 
 - **Start with a random name:** If you omit the name, Gemini generates a random
   one automatically (for example, `worktree-a1b2c3d4`).
 
   ```bash
-  gemini --worktree
+  hachimi --worktree
   ```
 
 <!-- prettier-ignore -->
@@ -85,7 +85,7 @@ Gemini CLI with the `--resume` flag and the session ID:
 
 ```bash
 cd .gemini/worktrees/feature-search
-gemini --resume <session_id>
+hachimi --resume <session_id>
 ```
 
 ## Managing Git worktrees manually

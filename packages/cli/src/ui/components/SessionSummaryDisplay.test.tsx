@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -146,7 +147,7 @@ describe('<SessionSummaryDisplay />', () => {
       const output = lastFrame();
 
       // Standard UUID characters are NOT wrapped in double quotes on non-Windows.
-      expect(output).toContain('gemini --resume 1234-abcd-5678-efgh');
+      expect(output).toContain('hachimi --resume 1234-abcd-5678-efgh');
       unmount();
     });
 
@@ -159,7 +160,7 @@ describe('<SessionSummaryDisplay />', () => {
       const output = lastFrame();
 
       // escapeShellArg (using shell-quote for bash) will wrap special characters in double quotes.
-      expect(output).toContain('gemini --resume "\'; rm -rf / #"');
+      expect(output).toContain('hachimi --resume "\'; rm -rf / #"');
       unmount();
     });
 
@@ -174,7 +175,7 @@ describe('<SessionSummaryDisplay />', () => {
       const output = lastFrame();
 
       // PowerShell doesn't wrap UUID in quotes by default, but we wrap it in double quotes on Windows.
-      expect(output).toContain('gemini --resume "1234-abcd-5678-efgh"');
+      expect(output).toContain('hachimi --resume "1234-abcd-5678-efgh"');
       unmount();
     });
 
@@ -190,7 +191,7 @@ describe('<SessionSummaryDisplay />', () => {
 
       // PowerShell wraps in single quotes and escapes internal single quotes by doubling them.
       // Since it's already quoted, we don't add redundant double quotes.
-      expect(output).toContain("gemini --resume '''; rm -rf / #'");
+      expect(output).toContain("hachimi --resume '''; rm -rf / #'");
       unmount();
     });
   });
@@ -212,7 +213,7 @@ describe('<SessionSummaryDisplay />', () => {
 
       expect(output).toContain('To resume work in this worktree:');
       expect(output).toContain(
-        'cd /path/to/foo-bar && gemini --resume test-session',
+        'cd /path/to/foo-bar && hachimi --resume test-session',
       );
       expect(output).toContain(
         'To remove manually: git worktree remove /path/to/foo-bar',
