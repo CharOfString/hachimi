@@ -291,7 +291,7 @@ const SETTINGS_SCHEMA = {
         label: 'Enable Terminal Notifications',
         category: 'General',
         requiresRestart: false,
-        default: false,
+        default: true,
         description:
           'Enable terminal run-event notifications for action-required prompts and session completion.',
         showInDialog: true,

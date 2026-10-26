@@ -72,7 +72,6 @@ export function useRunEventNotifications({
   );
 
   const hadPendingAttentionRef = useRef(false);
-  const previousFocusedRef = useRef(isFocused);
   const previousStreamingStateRef = useRef(streamingState);
   const lastSentAttentionNotificationRef = useRef<{
     key: string;
@@ -84,9 +83,6 @@ export function useRunEventNotifications({
       return;
     }
 
-    const wasFocused = previousFocusedRef.current;
-    previousFocusedRef.current = isFocused;
-
     const hasPendingAttention = pendingAttentionNotification !== null;
     const hadPendingAttention = hadPendingAttentionRef.current;
     hadPendingAttentionRef.current = hasPendingAttention;
@@ -96,13 +92,7 @@ export function useRunEventNotifications({
       return;
     }
 
-    const shouldSuppressForFocus = hasReceivedFocusEvent && isFocused;
-    if (shouldSuppressForFocus) {
-      return;
-    }
-
     const justEnteredAttentionState = !hadPendingAttention;
-    const justLostFocus = wasFocused && !isFocused;
     const now = Date.now();
     const currentKey = pendingAttentionNotification.key;
     const lastSent = lastSentAttentionNotificationRef.current;
@@ -112,9 +102,7 @@ export function useRunEventNotifications({
       lastSent.key === currentKey &&
       now - lastSent.sentAt < ATTENTION_NOTIFICATION_COOLDOWN_MS;
 
-    const shouldNotifyByStateChange = hasReceivedFocusEvent
-      ? justEnteredAttentionState || justLostFocus || keyChanged
-      : justEnteredAttentionState || keyChanged;
+    const shouldNotifyByStateChange = justEnteredAttentionState || keyChanged;
 
     if (!shouldNotifyByStateChange || onCooldown) {
       return;
@@ -130,13 +118,7 @@ export function useRunEventNotifications({
       buildRunEventNotificationContent(pendingAttentionNotification.event),
       notificationMethod,
     );
-  }, [
-    isFocused,
-    hasReceivedFocusEvent,
-    notificationsEnabled,
-    notificationMethod,
-    pendingAttentionNotification,
-  ]);
+  }, [notificationsEnabled, notificationMethod, pendingAttentionNotification]);
 
   useEffect(() => {
     if (!notificationsEnabled) {

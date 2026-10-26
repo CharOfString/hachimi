@@ -678,7 +678,7 @@ describe('AppContainer State Management', () => {
       unmount();
     });
 
-    it('does not send attention notification when terminal is focused', async () => {
+    it('sends attention notification when terminal is focused', async () => {
       mockedUseFocusState.mockReturnValue({
         isFocused: true,
         hasReceivedFocusEvent: true,
@@ -710,9 +710,7 @@ describe('AppContainer State Management', () => {
 
       const { unmount } = await act(async () => renderAppContainer());
 
-      expect(
-        terminalNotificationsMocks.notifyViaTerminal,
-      ).not.toHaveBeenCalled();
+      expect(terminalNotificationsMocks.notifyViaTerminal).toHaveBeenCalled();
 
       unmount();
     });

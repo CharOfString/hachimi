@@ -131,6 +131,13 @@ their corresponding top-level category object in your `settings.json` file.
   - **Description:** Enable Vim keybindings
   - **Default:** `false`
 
+- **`general.approvalPolicyMode`** (enum):
+
+  - **Description:** Hachimi honors auto-edit for build files; default preserves
+    classic approval behavior. Configure with /approve mode.
+  - **Default:** `"hachimi"`
+  - **Values:** `"hachimi"`, `"default"`
+
 - **`general.defaultApprovalMode`** (enum):
 
   - **Description:** The default approval mode for tool execution. 'default'
@@ -159,7 +166,7 @@ their corresponding top-level category object in your `settings.json` file.
 
   - **Description:** Enable terminal run-event notifications for action-required
     prompts and session completion.
-  - **Default:** `false`
+  - **Default:** `true`
 
 - **`general.notificationMethod`** (enum):
 
@@ -296,8 +303,8 @@ their corresponding top-level category object in your `settings.json` file.
 
 - **`ui.showStatusInTitle`** (boolean):
 
-  - **Description:** Show Gemini CLI model thoughts in the terminal window title
-    during the working phase
+  - **Description:** Show Hachimi CLI model thoughts in the terminal window
+    title during the working phase
   - **Default:** `false`
 
 - **`ui.dynamicWindowTitle`** (boolean):
@@ -308,7 +315,7 @@ their corresponding top-level category object in your `settings.json` file.
 
 - **`ui.showHomeDirectoryWarning`** (boolean):
 
-  - **Description:** Show a warning when running Gemini CLI in the home
+  - **Description:** Show a warning when running Hachimi CLI in the home
     directory.
   - **Default:** `true`
   - **Requires restart:** Yes
@@ -340,6 +347,22 @@ their corresponding top-level category object in your `settings.json` file.
   - **Description:** Display tool outputs (like directory listings and file
     reads) in a compact, structured format.
   - **Default:** `true`
+
+- **`ui.logo.mode`** (enum):
+
+  - **Description:** Logo rendering mode.
+  - **Default:** `"off"`
+  - **Values:** `"off"`, `"ascii"`, `"kitty"`
+
+- **`ui.logo.text`** (string):
+
+  - **Description:** Custom ASCII artwork.
+  - **Default:** `""`
+
+- **`ui.logo.image`** (string):
+
+  - **Description:** Absolute path to a PNG image.
+  - **Default:** `""`
 
 - **`ui.hideBanner`** (boolean):
 
@@ -2221,7 +2244,7 @@ their corresponding top-level category object in your `settings.json` file.
 
 - **`experimental.gemmaModelRouter.autoStartServer`** (boolean):
 
-  - **Description:** Automatically start the LiteRT-LM server when Gemini CLI
+  - **Description:** Automatically start the LiteRT-LM server when Hachimi CLI
     starts and the Gemma router is enabled.
   - **Default:** `false`
   - **Requires restart:** Yes

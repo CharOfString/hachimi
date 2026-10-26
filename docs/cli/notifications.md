@@ -1,13 +1,8 @@
-# Notifications (experimental)
+# Notifications
 
-Gemini CLI can send system notifications to alert you when a session completes
+Hachimi CLI can send system notifications to alert you when a session completes
 or when it needs your attention, such as when it's waiting for you to approve a
 tool call.
-
-<!-- prettier-ignore -->
-> [!NOTE]
-> This is an experimental feature currently under active development and
-> may need to be enabled under `/settings`.
 
 Notifications are particularly useful when running long-running tasks or using
 [Plan Mode](./plan-mode.md), letting you switch to other windows while Gemini
@@ -24,10 +19,15 @@ notifications, Gemini CLI falls back to a terminal bell (BEL) to get your
 attention. Most terminals respond to BEL with a taskbar flash or system alert
 sound.
 
-## Enable notifications
+## Configure notifications
 
-Notifications are disabled by default. You can enable them using the `/settings`
-command or by updating your `settings.json` file.
+Notifications are enabled by default. Each new approval request sends one
+notification, including while the terminal is focused. Session completion
+notifications remain suppressed while the terminal is focused.
+
+Use `/notification on` or `/notification off` to persist the setting. Running
+`/notification` without an argument shows the current state. You can also use
+the `/settings` command or update your `settings.json` file.
 
 1.  Open the settings dialog by typing `/settings` in an interactive session.
 2.  Navigate to the **General** category.

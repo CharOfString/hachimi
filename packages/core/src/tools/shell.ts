@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -304,6 +305,14 @@ export class ShellToolInvocation extends BaseToolInvocation<
   }
 
   hasTaintedOrBuildFileRisk(): boolean {
+    if (
+      this.context.config.getApprovalMode() === ApprovalMode.YOLO &&
+      this.context.config.getPolicyEngine?.()?.getApprovalPolicyMode() ===
+        'hachimi'
+    ) {
+      return false;
+    }
+
     const command = stripShellWrapper(this.params.command);
     const untrustedFlags = this.getUntrustedFlags(command);
     const modifiedBuildFiles = getModifiedBuildFiles(this.context.config);

@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2026 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -10,6 +11,7 @@ import {
   MAX_NOTIFICATION_BODY_CHARS,
   MAX_NOTIFICATION_SUBTITLE_CHARS,
   MAX_NOTIFICATION_TITLE_CHARS,
+  isNotificationsEnabled,
   notifyViaTerminal,
   TerminalNotificationMethod,
 } from './terminalNotifications.js';
@@ -38,6 +40,15 @@ describe('terminal notifications', () => {
 
   afterEach(() => {
     vi.unstubAllEnvs();
+  });
+
+  it('enables notifications by default and honors an explicit off setting', () => {
+    expect(isNotificationsEnabled({ merged: {} })).toBe(true);
+    expect(
+      isNotificationsEnabled({
+        merged: { general: { enableNotifications: false } },
+      }),
+    ).toBe(false);
   });
 
   it('returns false without writing when disabled', async () => {

@@ -31,6 +31,14 @@ Use `/auth` → **Provider accounts** for Qwen-derived presets, multiple account
 and custom endpoints. Use `/model` to switch the active account's models. See
 [provider account management](docs/hachimi/provider-accounts.md).
 
+审批通知默认开启。Hachimi 在工具等待审批时发送一次终端桌面通知：
+
+```text
+/notification      # 查看通知状态
+/notification on   # 开启并保存
+/notification off  # 关闭并保存
+```
+
 ## 审批策略 / Approval policy
 
 默认使用 **hachimi** 审批策略，可随时切换：
@@ -58,6 +66,8 @@ and custom endpoints. Use `/model` to switch the active account's models. See
 - `default`：使用原版 Gemini 循环，即 **Normal → Auto Edit → Plan →
   Normal**；Plan 不可用时从 Auto
   Edit 返回 Normal。处于 YOLO 时，Shift+Tab 进入 Auto Edit。
+
+Hachimi 的 YOLO 会直接运行 shell，并放行构建配置文件编辑，不再因为命令来源或构建文件风险启发式再次弹出审批。显式 deny/ask 策略、管理员限制以及 hook 主动要求的审批仍然生效。
 
 切换审批机制不会立刻改变当前循环状态。下一次按 Shift+Tab 时按照新机制计算下一个状态。管理员设置、工作区信任、显式审批规则及已有安全检查继续生效；已经显示的审批不会被自动确认。
 

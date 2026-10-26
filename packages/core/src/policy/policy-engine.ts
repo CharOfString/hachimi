@@ -937,7 +937,8 @@ export class PolicyEngine {
         isFileEditTool &&
         !(
           this.approvalPolicyMode === 'hachimi' &&
-          this.approvalMode === ApprovalMode.AUTO_EDIT
+          (this.approvalMode === ApprovalMode.AUTO_EDIT ||
+            this.approvalMode === ApprovalMode.YOLO)
         )
       ) {
         let targetPath = extractFilePathFromArgs(toolCall.args);

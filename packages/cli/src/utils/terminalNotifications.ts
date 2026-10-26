@@ -70,12 +70,20 @@ export function buildRunEventNotificationContent(
   });
 }
 
-export function isNotificationsEnabled(settings: LoadedSettings): boolean {
-  const general = settings.merged.general as
-    | { enableNotifications?: boolean }
-    | undefined;
+type NotificationSettings = {
+  merged: {
+    general?: {
+      enableNotifications?: boolean;
+    };
+  };
+};
 
-  return general?.enableNotifications === true;
+export function isNotificationsEnabled(
+  settings: NotificationSettings,
+): boolean {
+  const general = settings.merged.general;
+
+  return general?.enableNotifications !== false;
 }
 
 export enum TerminalNotificationMethod {

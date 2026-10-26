@@ -4547,6 +4547,25 @@ describe('PolicyEngine', () => {
         PolicyDecision.DENY,
       );
     });
+
+    it('allows build file edits in Hachimi YOLO mode', async () => {
+      const engine = new PolicyEngine({
+        rules: [{ toolName: 'write_file', decision: PolicyDecision.ALLOW }],
+        approvalMode: ApprovalMode.YOLO,
+      });
+
+      expect(
+        (
+          await engine.check(
+            {
+              name: 'write_file',
+              args: { file_path: 'package.json', content: '{}' },
+            },
+            undefined,
+          )
+        ).decision,
+      ).toBe(PolicyDecision.ALLOW);
+    });
   });
 
   describe('Build File Protection', () => {
