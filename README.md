@@ -1,421 +1,269 @@
-# Hachimi CLI
+<!-- Improved compatibility of back to top link: See: https://github.com/othneildrew/Best-README-Template/pull/73 -->
+<a id="readme-top"></a>
+<!--
+*** Thanks for checking out the Best-README-Template. If you have a suggestion
+*** that would make this better, please fork the repo and create a pull request
+*** or simply open an issue with the tag "enhancement".
+*** Don't forget to give the project a star!
+*** Thanks again! Now go create something AMAZING! :D
+-->
 
-Gemini CLI fork with custom API provider support (account system ported from
-QWen Code). ![](./docs/screenshots/account_sys.png)
 
-Build and install from this checkout (Node.js 20 or newer):
 
-```sh
-npm ci
-npm run build:install
-hachimi --help
-```
+<!-- PROJECT SHIELDS -->
+<!--
+*** I'm using markdown "reference style" links for readability.
+*** Reference links are enclosed in brackets [ ] instead of parentheses ( ).
+*** See the bottom of this document for the declaration of the reference variables
+*** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
+*** https://www.markdownguide.org/basic-syntax/#reference-style-links
+-->
+[![Contributors][contributors-shield]][contributors-url]
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![project_license][license-shield]][license-url]
 
-On Linux and macOS, `build:install` copies the built application and its locally
-installed native dependencies into `~/.local/lib/hachimi-cli`, with the command
-at `~/.local/bin/hachimi`. Ensure `~/.local/bin` is on your PATH. The installed
-copy does not depend on this checkout; Node.js is still required.
+> **NOTE**: This is not the official Gemini CLI project; it is a derivative fork. We have **no affiliation** with Google.
 
-Use `npm run build:install -- --prefix /your/prefix` to choose another location.
-After a successful build, `npm run install:local` installs without rebuilding.
-Neither command downloads dependencies: install them with `npm ci` first (or
-`npm ci --offline` if they are already cached). Run `build:install` again to
-update.
 
-The standalone build (`npm run build:binary`) also produces `hachimi` (or
-`hachimi.exe` on Windows). Configuration still uses `.gemini`, `GEMINI.md`, and
-existing `GEMINI_*` environment variables; both commands share these settings.
-The documentation below is inherited from upstream and uses the original names.
 
-Use `/auth` → **Provider accounts** for Qwen-derived presets, multiple accounts,
-and custom endpoints. Use `/model` to switch the active account's models. See
-[provider account management](docs/hachimi/provider-accounts.md).
+<!-- PROJECT LOGO -->
+<br />
+<!--
+<div align="center">
+  <a href="https://github.com/CharOfString/hachimi">
+    <img src="images/logo.png" alt="Logo" width="80" height="80">
+  </a>
+-->
 
-审批通知默认开启。Hachimi 在工具等待审批时发送一次终端桌面通知：
+<h3 align="center">Hachimi</h3>
 
-```text
-/notification      # 查看通知状态
-/notification on   # 开启并保存
-/notification off  # 关闭并保存
-```
+  <p align="center">
+    A fork of Google's Gemini CLI with enhanced approval mode and third party model support.
+    <br />
+    <a href="./docs/"><strong>Explore the docs »</strong></a>
+    <br />
+    <br />
+    <a href="https://github.com/CharOfString/hachimi/actions">View CI Status</a>
+    &middot;
+    <a href="https://github.com/CharOfString/hachimi/issues/new">Report Bug</a>
+    &middot;
+    <a href="https://github.com/CharOfString/hachimi/issues/new">Request Feature</a>
+  </p>
+</div>
 
-## 审批策略 / Approval policy
 
-默认使用 **hachimi** 审批策略，可随时切换：
 
-```text
-/approve mode          # 查看当前审批机制
-/approve mode hachimi  # Hachimi 策略（默认）
-/approve mode default  # 原版 Gemini 策略
-```
 
-`hachimi`：在 **Auto accept edits / auto_edit** 状态下，`write_file`、`replace`
-编辑项目的构建配置文件（例如
-`package.json`、`CMakeLists.txt`、`Makefile`）也自动放行，不再因为“构建文件”单独弹出审批。显式 deny/ask 规则、路径检查和 hook 审批仍然生效。
 
-`default`：恢复原版 Gemini 的审批规则，构建配置文件仍需单独确认。
+<!-- ABOUT THE PROJECT -->
+## About The Project
+![Screenshot](./docs/screenshots/screenshot.png)
 
-`hachimi/default` 只选择策略，不改变当前会话模式。策略写入用户
-`.gemini/settings.json` 的
-`general.approvalPolicyMode`，立即生效并在重启后保留。
+*Hachimi* is a fork of Google's *Gemini CLI*, it comes with the following modification:
+- Added an third party account system that you may add custom endpoint & providers (ported from [qwen-code](https://github.com/qwenLM/qwen-code)).
+- Added advanced level of approval control with four levels: manual, accept-edit, planning, YOLO (ported from [qwen-code](https://github.com/qwenLM/qwen-code)).
+- Send you a notification while it asks something to approve.
+- You may now customize the logo w/ your own ACSII art, or even PNG if your terminal supports Kitty graphics protocol.
 
-两套机制各自定义 Shift+Tab 行为：
 
-- `hachimi`：**Normal → Auto Edit → Plan → YOLO →
-  Normal**，自动跳过当前不可用的 Plan 或被禁用的 YOLO。
-- `default`：使用原版 Gemini 循环，即 **Normal → Auto Edit → Plan →
-  Normal**；Plan 不可用时从 Auto
-  Edit 返回 Normal。处于 YOLO 时，Shift+Tab 进入 Auto Edit。
 
-Hachimi 的 YOLO 会直接运行 shell，并放行构建配置文件编辑，不再因为命令来源或构建文件风险启发式再次弹出审批。显式 deny/ask 策略、管理员限制以及 hook 主动要求的审批仍然生效。
+### Built With
+- **Runtime**: Node.js (≥20.0.0, ~20.19.0 recommended for dev).
+- **Language**: TypeScript.
+- **UI**: React with [Ink](https://github.com/vadimdemedes/ink) for terminal rendering.
+- **Bundler**: esbuild.
+- **Testing**: Vitest (unit + integration/E2E).
+- **Linting/Formatting**: ESLint, Prettier.
 
-切换审批机制不会立刻改变当前循环状态。下一次按 Shift+Tab 时按照新机制计算下一个状态。管理员设置、工作区信任、显式审批规则及已有安全检查继续生效；已经显示的审批不会被自动确认。
 
-这一审批机制切换方式和循环预设参考 Qwen Code；来源、版本及修改记录见
-[NOTICE](./NOTICE) 和[开源合规说明](./docs/hachimi/open-source-compliance.md)。
 
----
-
-> [!NOTE]
->
-> **Unpaid tier and Google One users:** Gemini CLI was replaced by Antigravity
-> CLI on June 18th, 2026. To learn more, see our
-> [blog post](https://developers.googleblog.com/an-important-update-transitioning-gemini-cli-to-antigravity-cli).
->
-> **Gemini CLI has not been optimized for Gemini 4 Argon.** To use Gemini 4
-> Argon, please use Antigravity.
-
-# Gemini CLI
-
-[![Gemini CLI CI](https://github.com/google-gemini/gemini-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/google-gemini/gemini-cli/actions/workflows/ci.yml)
-[![Gemini CLI E2E (Chained)](https://github.com/google-gemini/gemini-cli/actions/workflows/chained_e2e.yml/badge.svg)](https://github.com/google-gemini/gemini-cli/actions/workflows/chained_e2e.yml)
-[![Version](https://img.shields.io/npm/v/@google/gemini-cli)](https://www.npmjs.com/package/@google/gemini-cli)
-[![License](https://img.shields.io/github/license/google-gemini/gemini-cli)](https://github.com/google-gemini/gemini-cli/blob/main/LICENSE)
-[![View Code Wiki](https://assets.codewiki.google/readme-badge/static.svg)](https://codewiki.google/github.com/google-gemini/gemini-cli?utm_source=badge&utm_medium=github&utm_campaign=github.com/google-gemini/gemini-cli)
-
-> [!NOTE]
->
-> Gemini CLI is not optimized for the latest Gemini models. For the best coding
-> experience with Gemini models use
-> [Antigravity CLI](https://antigravity.google/product/antigravity-cli)
-
-Gemini CLI is an open-source AI agent that brings the power of Gemini directly
-into your terminal. It provides lightweight access to Gemini, giving you the
-most direct path from your prompt to our model.
-
-Learn all about Gemini CLI in our [documentation](https://geminicli.com/docs/).
-
-## 📦 Installation
-
-See
-[Gemini CLI installation, execution, and releases](https://www.geminicli.com/docs/get-started/installation)
-for recommended system specifications and a detailed installation guide.
-
-### Quick Install
-
-#### Run instantly
-
+<!-- GETTING STARTED -->
+## Getting Started
+### Quick start
 ```bash
-npm run start
+$ npm run start
 ```
 
-#### Install to local
-
+### Installation
 ```bash
-npm run build:install
+$ npm run build:install
 ```
 
-## Release Channels
+Then, you may call `hachimi` from your terminal.
 
-See [Releases](https://www.geminicli.com/docs/changelogs) for more details.
-
-### Preview
-
-New preview releases will be published each week at UTC 23:59 on Tuesdays. These
-releases will not have been fully vetted and may contain regressions or other
-outstanding issues. Please help us test and install with `preview` tag.
-
-```bash
-npm install -g @google/gemini-cli@preview
-```
-
-### Stable
-
-- New stable releases will be published each week at UTC 20:00 on Tuesdays, this
-  will be the full promotion of last week's `preview` release + any bug fixes
-  and validations. Use `latest` tag.
-
-```bash
-npm install -g @google/gemini-cli@latest
-```
-
-### Nightly
-
-- New releases will be published each day at UTC 00:00. This will be all changes
-  from the main branch as represented at time of release. It should be assumed
-  there are pending validations and issues. Use `nightly` tag.
-
-```bash
-npm install -g @google/gemini-cli@nightly
-```
-
-## 📋 Key Features
-
-### Code Understanding & Generation
-
-- Query and edit large codebases
-- Generate new apps from PDFs, images, or sketches using multimodal capabilities
-- Debug issues and troubleshoot with natural language
-
-### Automation & Integration
-
-- Automate operational tasks like querying pull requests or handling complex
-  rebases
-- Use MCP servers to connect new capabilities, including
-  [media generation with Imagen, Veo or Lyria](https://github.com/GoogleCloudPlatform/vertex-ai-creative-studio/tree/main/experiments/mcp-genmedia)
-- Run non-interactively in scripts for workflow automation
-
-## 🔐 Authentication Options
-
-Choose the authentication method that best fits your needs:
-
-### Option 1: Sign in with Google (OAuth login using your Google Account)
-
-#### When using a paid Code Assist License from your organization, remember to set the Google Cloud Project
-
-```bash
-# Set your Google Cloud Project
-export GOOGLE_CLOUD_PROJECT="YOUR_PROJECT_ID"
-gemini
-```
-
-### Option 2: Gemini API Key
-
-**✨ Best for:** Developers who need specific model control or paid tier access
-
-**Benefits:**
-
-- **Model selection**: Choose specific Gemini models
-- **Usage-based billing**: Upgrade for higher limits when needed
-
-```bash
-# Get your key from https://aistudio.google.com/apikey
-export GEMINI_API_KEY="YOUR_API_KEY"
-gemini
-```
-
-### Option 3: Vertex AI
-
-**✨ Best for:** Enterprise teams and production workloads
-
-**Benefits:**
-
-- **Enterprise features**: Advanced security and compliance
-- **Scalable**: Higher rate limits with billing account
-- **Integration**: Works with existing Google Cloud infrastructure
-
-```bash
-# Get your key from Google Cloud Console
-export GOOGLE_API_KEY="YOUR_API_KEY"
-export GOOGLE_GENAI_USE_VERTEXAI=true
-gemini
-```
-
-For Google Workspace accounts and other authentication methods, see the
-[authentication guide](https://www.geminicli.com/docs/get-started/authentication).
-
-## 🚀 Getting Started
-
-> [!NOTE]
->
-> Gemini CLI is not optimized for the latest Gemini models. For the best coding
-> experience with Gemini models use
-> [Antigravity CLI](https://antigravity.google/product/antigravity-cli)
-
-### Basic Usage
-
+<!-- USAGE EXAMPLES -->
+## Usage
+### Basic usage
 #### Start in current directory
-
 ```bash
-gemini
+$ hachimi
 ```
 
 #### Include multiple directories
-
 ```bash
-gemini --include-directories ../lib,../docs
+$ hachimi --include-directories ../lib,../docs
 ```
 
 #### Use specific model
-
 ```bash
-gemini -m gemini-2.5-flash
+$ hachimi -m gemini-2.5-flash
 ```
 
 #### Non-interactive mode for scripts
-
 Get a simple text response:
-
 ```bash
-gemini -p "Explain the architecture of this codebase"
+$ hachimi -p "Explain the architecture of this codebase"
 ```
 
-For more advanced scripting, including how to parse JSON and handle errors, use
-the `--output-format json` flag to get structured output:
-
+For more advanced scripting, including how to parse JSON and handle errors, use the --output-format json flag to get structured output:
 ```bash
-gemini -p "Explain the architecture of this codebase" --output-format json
+$ hachimi -p "Explain the architecture of this codebase" --output-format json
 ```
 
-For real-time event streaming (useful for monitoring long-running operations),
-use `--output-format stream-json` to get newline-delimited JSON events:
-
-```bash
-gemini -p "Run tests and deploy" --output-format stream-json
+For real-time event streaming (useful for monitoring long-running operations), use --output-format stream-json to get newline-delimited JSON events:
+```
+$ hachimi -p "Run tests and deploy" --output-format stream-json
 ```
 
-### Quick Examples
+### Features
+#### Switch Approve Mode
+Use `Shift` + `Tab` to cycle between four modes: manual, accepts-edits on, planning, YOLO. Note that YOLO mode grants "full access".
 
-#### Start a new project
-
-```bash
-cd new-project/
-gemini
-> Write me a Discord bot that answers questions using a FAQ.md file I will provide
+The logic for the approval mode has also been modified; the original Gemini CLI treated `package.json` and `CMakeLists.txt` as sensitive files, but we have removed this designation. If you wish to revert to the behavior of the original Gemini CLI, please run this command inside hachimi:
+```
+> /approve mode default
 ```
 
-#### Analyze existing code
-
-```bash
-git clone https://github.com/google-gemini/gemini-cli
-cd gemini-cli
-gemini
-> Give me a summary of all of the changes that went in yesterday
+To reverse the operation:
+```
+> /approve mode hachimi
 ```
 
-## 📚 Documentation
-
-### Getting Started
-
-- [**Quickstart Guide**](https://www.geminicli.com/docs/get-started) - Get up
-  and running quickly.
-- [**Authentication Setup**](https://www.geminicli.com/docs/get-started/authentication) -
-  Detailed auth configuration.
-- [**Configuration Guide**](https://www.geminicli.com/docs/reference/configuration) -
-  Settings and customization.
-- [**Keyboard Shortcuts**](https://www.geminicli.com/docs/reference/keyboard-shortcuts) -
-  Productivity tips.
-
-### Core Features
-
-- [**Commands Reference**](https://www.geminicli.com/docs/reference/commands) -
-  All slash commands (`/help`, `/chat`, etc).
-- [**Custom Commands**](https://www.geminicli.com/docs/cli/custom-commands) -
-  Create your own reusable commands.
-- [**Context Files (GEMINI.md)**](https://www.geminicli.com/docs/cli/gemini-md) -
-  Provide persistent context to Gemini CLI.
-- [**Checkpointing**](https://www.geminicli.com/docs/cli/checkpointing) - Save
-  and resume conversations.
-- [**Token Caching**](https://www.geminicli.com/docs/cli/token-caching) -
-  Optimize token usage.
-
-### Tools & Extensions
-
-- [**Built-in Tools Overview**](https://www.geminicli.com/docs/reference/tools)
-  - [File System Operations](https://www.geminicli.com/docs/tools/file-system)
-  - [Shell Commands](https://www.geminicli.com/docs/tools/shell)
-  - [Web Fetch & Search](https://www.geminicli.com/docs/tools/web-fetch)
-- [**MCP Server Integration**](https://www.geminicli.com/docs/tools/mcp-server) -
-  Extend with custom tools.
-- [**Custom Extensions**](https://geminicli.com/docs/extensions/writing-extensions) -
-  Build and share your own commands.
-
-### Advanced Topics
-
-- [**Headless Mode (Scripting)**](https://www.geminicli.com/docs/cli/headless) -
-  Use Gemini CLI in automated workflows.
-- [**IDE Integration**](https://www.geminicli.com/docs/ide-integration) - VS
-  Code companion.
-- [**Sandboxing & Security**](https://www.geminicli.com/docs/cli/sandbox) - Safe
-  execution environments.
-- [**Trusted Folders**](https://www.geminicli.com/docs/cli/trusted-folders) -
-  Control execution policies by folder.
-- [**Enterprise Guide**](https://www.geminicli.com/docs/cli/enterprise) - Deploy
-  and manage in a corporate environment.
-- [**Telemetry & Monitoring**](https://www.geminicli.com/docs/cli/telemetry) -
-  Usage tracking.
-- [**Tools reference**](https://www.geminicli.com/docs/reference/tools) -
-  Built-in tools overview.
-- [**Local development**](https://www.geminicli.com/docs/local-development) -
-  Local development tooling.
-
-### Troubleshooting & Support
-
-- [**Troubleshooting Guide**](https://www.geminicli.com/docs/resources/troubleshooting) -
-  Common issues and solutions.
-- [**FAQ**](https://www.geminicli.com/docs/resources/faq) - Frequently asked
-  questions.
-- Use `/bug` command to report issues directly from the CLI.
-
-### Using MCP Servers
-
-Configure MCP servers in `~/.gemini/settings.json` to extend Gemini CLI with
-custom tools:
-
-```text
-> @github List my open pull requests
-> @slack Send a summary of today's commits to #dev channel
-> @database Run a query to find inactive users
+#### Add Third Party Account Provider
+To add a third party account provider, please run this command inside hachimi:
+```
+> /auth signin
 ```
 
-See the
-[MCP Server Integration guide](https://www.geminicli.com/docs/tools/mcp-server)
-for setup instructions.
+And please select *provider accounts*.
 
-## 🤝 Contributing
+Avaliable providers:
+1. Alibaba ModelStudio · Coding Plan
+2. Alibaba ModelStudio · Standard API Key
+3. Alibaba ModelStudio · Token Plan
+4. DeepSeek API Key
+5. Grok (xAI) API Key
+6. Idealab API Key
+7. MiniMax API Key
+8. ModelScope API Key
+9. Kimi (Moonshot AI) API Key
+10. OpenRouter
+11. QwenCloud · Standard API Key
+12. QwenCloud · Token Plan
+13. Requesty
+14. Z.AI API Key
+15. Custom provider (OpenAI / Anthropic / Gemini)
 
-We welcome contributions! Gemini CLI is fully open source (Apache 2.0), and we
-encourage the community to:
+#### Notification
+By default, hachimi will send a notification when it needs your approval, use this command to toggle it:
+```
+> /notification on
+> /notification off
+```
 
-- Report bugs and suggest features.
-- Improve documentation.
-- Submit code improvements.
-- Share your MCP servers and extensions.
+#### Customize Logo
+You may add your customized logo.
 
-See our [Contributing Guide](./CONTRIBUTING.md) for development setup, coding
-standards, and how to submit pull requests.
+To hide the logo, run:
+```
+> /logo off
+```
 
-Check our [Official Roadmap](https://github.com/orgs/google-gemini/projects/11)
-for planned features and priorities.
+To add an ACSII art logo (you'll need a UTF-8 text file):
+```
+> /logo ascii <file>
+```
 
-## 📖 Resources
+If your terminal supports Kiity graphics protocol, you may even use PNGs:
+```
+> /logo kitty <file.png>
+```
 
-- **[Free Course](https://learn.deeplearning.ai/courses/gemini-cli-code-and-create-with-an-open-source-agent/information)** -
-  Learn the basics.
-- **[Official Roadmap](./ROADMAP.md)** - See what's coming next.
-- **[Changelog](https://www.geminicli.com/docs/changelogs)** - See recent
-  notable updates.
-- **[NPM Package](https://www.npmjs.com/package/@google/gemini-cli)** - Package
-  registry.
-- **[GitHub Issues](https://github.com/google-gemini/gemini-cli/issues)** -
-  Report bugs or request features.
-- **[Security Advisories](https://github.com/google-gemini/gemini-cli/security/advisories)** -
-  Security updates.
+#### Pin the Logo & Version Information to Top (Restart Required)
+This is an "Easter egg" feature with no real practical value — other than displaying the logo and version information at the top of the terminal for your viewing pleasure (though this does come at the cost of available vertical space in the terminal).
 
-### Uninstall
+You may use following command to toggle it (restart is required):
+```
+> /showver on
+> /showver off
+```
 
-See the [Uninstall Guide](https://www.geminicli.com/docs/resources/uninstall)
-for removal instructions.
+<!-- ROADMAP -->
+## Roadmap
+This section is comming soon!
 
-## 📄 Legal
 
-- **License**: [Apache License 2.0](LICENSE)
-- **Terms of Service**:
-  [Terms & Privacy](https://www.geminicli.com/docs/resources/tos-privacy)
-- **Security**: [Security Policy](SECURITY.md)
 
----
+<!-- CONTRIBUTING -->
+## Contributing
+### Top contributors:
 
-<p align="center">
-  Built with ❤️ by Google and the open source community
-</p>
+<a href="https://github.com/CharOfString/hachimi/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=CharOfString/hachimi" alt="contrib.rocks image" />
+</a>
+
+
+
+<!-- LICENSE -->
+## License
+This project is distribuced under [Apache License Version 2.0](./LICENSE). A license file could be found on the project repository.
+
+
+
+<!-- CONTACT -->
+## Contact
+Please utilize the issue section to contact me.
+
+
+
+<!-- ACKNOWLEDGMENTS -->
+## Acknowledgments
+- **Gemini CLI**: https://github.com/google-gemini/gemini-cli
+- **BEST README Template**: https://github.com/othneildrew/Best-README-Template
+
+
+
+<!-- MARKDOWN LINKS & IMAGES -->
+<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+[contributors-shield]: https://img.shields.io/github/contributors/CharOfString/hachimi.svg?style=for-the-badge
+[contributors-url]: https://github.com/CharOfString/hachimi/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/CharOfString/hachimi.svg?style=for-the-badge
+[forks-url]: https://github.com/CharOfString/hachimi/network/members
+[stars-shield]: https://img.shields.io/github/stars/CharOfString/hachimi.svg?style=for-the-badge
+[stars-url]: https://github.com/CharOfString/hachimi/stargazers
+[issues-shield]: https://img.shields.io/github/issues/CharOfString/hachimi.svg?style=for-the-badge
+[issues-url]: https://github.com/CharOfString/hachimi/issues
+[license-shield]: https://img.shields.io/github/license/CharOfString/hachimi.svg?style=for-the-badge
+[license-url]: https://github.com/CharOfString/hachimi/blob/master/LICENSE.txt
+[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
+[linkedin-url]: https://linkedin.com/in/linkedin_username
+[product-screenshot]: images/screenshot.png
+<!-- Shields.io badges. You can a comprehensive list with many more badges at: https://github.com/inttter/md-badges -->
+[Next.js]: https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white
+[Next-url]: https://nextjs.org/
+[React.js]: https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB
+[React-url]: https://reactjs.org/
+[Vue.js]: https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge&logo=vuedotjs&logoColor=4FC08D
+[Vue-url]: https://vuejs.org/
+[Angular.io]: https://img.shields.io/badge/Angular-DD0031?style=for-the-badge&logo=angular&logoColor=white
+[Angular-url]: https://angular.io/
+[Svelte.dev]: https://img.shields.io/badge/Svelte-4A4A55?style=for-the-badge&logo=svelte&logoColor=FF3E00
+[Svelte-url]: https://svelte.dev/
+[Laravel.com]: https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white
+[Laravel-url]: https://laravel.com
+[Bootstrap.com]: https://img.shields.io/badge/Bootstrap-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white
+[Bootstrap-url]: https://getbootstrap.com
+[JQuery.com]: https://img.shields.io/badge/jQuery-0769AD?style=for-the-badge&logo=jquery&logoColor=white
+[JQuery-url]: https://jquery.com 
