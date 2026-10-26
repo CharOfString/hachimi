@@ -38,6 +38,7 @@ import {
 } from './sandboxManager.js';
 import type { SandboxConfig } from '../config/config.js';
 import { killProcessGroup } from '../utils/process-utils.js';
+import { getSafeGitSshCommand } from '../utils/gitUtils.js';
 import { isNodeError } from '../utils/errors.js';
 import {
   ExecutionLifecycleService,
@@ -634,6 +635,8 @@ export class ShellExecutionService {
       GIT_TERMINAL_PROMPT: '0',
       GIT_ASKPASS: '',
       SSH_ASKPASS: '',
+      // Required: overrides the empty core.sshCommand set above.
+      GIT_SSH_COMMAND: getSafeGitSshCommand(sourceEnv),
       GH_PROMPT_DISABLED: '1',
       GCM_INTERACTIVE: 'never',
       DISPLAY: '',

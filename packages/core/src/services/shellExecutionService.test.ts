@@ -2616,6 +2616,8 @@ describe('ShellExecutionService environment variables', () => {
   it('should include headless git and gh environment variables in non-interactive mode and append git config safely', async () => {
     vi.resetModules();
     vi.stubEnv('GIT_CONFIG_GLOBAL', '');
+    vi.stubEnv('GIT_SSH_COMMAND', undefined);
+    vi.stubEnv('GIT_SSH', undefined);
     vi.stubEnv('GIT_CONFIG_COUNT', '2');
     vi.stubEnv('GIT_CONFIG_KEY_0', 'core.editor');
     vi.stubEnv('GIT_CONFIG_VALUE_0', 'vim');
@@ -2641,6 +2643,7 @@ describe('ShellExecutionService environment variables', () => {
     expect(cpEnv).toHaveProperty('GIT_TERMINAL_PROMPT', '0');
     expect(cpEnv).toHaveProperty('GIT_ASKPASS', '');
     expect(cpEnv).toHaveProperty('SSH_ASKPASS', '');
+    expect(cpEnv).toHaveProperty('GIT_SSH_COMMAND', 'ssh -o BatchMode=yes');
     expect(cpEnv).toHaveProperty('GH_PROMPT_DISABLED', '1');
     expect(cpEnv).toHaveProperty('GCM_INTERACTIVE', 'never');
     expect(cpEnv).toHaveProperty('DISPLAY', '');

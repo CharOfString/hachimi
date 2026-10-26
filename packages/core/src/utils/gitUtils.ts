@@ -8,23 +8,20 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { spawnAsync } from './shell-utils.js';
 
-export function getSafeGitEnv(
+/**
+ * Builds a GIT_SSH_COMMAND that honors the user's GIT_SSH_COMMAND / GIT_SSH
+ * (falling back to `ssh`) but forces non-interactive batch mode.
+ *
+ * This must always be exported alongside the `core.sshCommand=''` override:
+ * GIT_SSH_COMMAND takes precedence over it, whereas without it git would try
+ * to execute the empty string ("cannot run : No such file or directory").
+ */
+export function getSafeGitSshCommand(
   baseEnv: Record<string, string | undefined> = process.env,
-): Record<string, string | undefined> {
-  const devNullPath = process.platform === 'win32' ? 'NUL' : '/dev/null';
-
-  // Strip pre-existing GIT_CONFIG_* and GIT_CONFIG_PARAMETERS variables to prevent environment pollution
-  // (non-empty GIT_CONFIG_GLOBAL is explicitly restored below).
-  const cleanedEnv: Record<string, string | undefined> = {};
-  for (const [key, value] of Object.entries(baseEnv)) {
-    if (!key.startsWith('GIT_CONFIG_') && key !== 'GIT_CONFIG_PARAMETERS') {
-      cleanedEnv[key] = value;
-    }
-  }
-
-  let baseSshCommand = cleanedEnv['GIT_SSH_COMMAND'];
-  if (!baseSshCommand && cleanedEnv['GIT_SSH']) {
-    const gitSsh = cleanedEnv['GIT_SSH'];
+): string {
+  let baseSshCommand = baseEnv['GIT_SSH_COMMAND'];
+  if (!baseSshCommand && baseEnv['GIT_SSH']) {
+    const gitSsh = baseEnv['GIT_SSH'];
     baseSshCommand =
       gitSsh.includes(' ') && !gitSsh.startsWith('"') && !gitSsh.startsWith("'")
         ? '"' + gitSsh + '"'
@@ -56,12 +53,29 @@ export function getSafeGitEnv(
       baseSshCommand.slice(execLength);
   }
 
+  return gitSshCommand;
+}
+
+export function getSafeGitEnv(
+  baseEnv: Record<string, string | undefined> = process.env,
+): Record<string, string | undefined> {
+  const devNullPath = process.platform === 'win32' ? 'NUL' : '/dev/null';
+
+  // Strip pre-existing GIT_CONFIG_* and GIT_CONFIG_PARAMETERS variables to prevent environment pollution
+  // (non-empty GIT_CONFIG_GLOBAL is explicitly restored below).
+  const cleanedEnv: Record<string, string | undefined> = {};
+  for (const [key, value] of Object.entries(baseEnv)) {
+    if (!key.startsWith('GIT_CONFIG_') && key !== 'GIT_CONFIG_PARAMETERS') {
+      cleanedEnv[key] = value;
+    }
+  }
+
   return {
     ...cleanedEnv,
     GIT_TERMINAL_PROMPT: '0',
     GIT_ASKPASS: '',
     SSH_ASKPASS: '',
-    GIT_SSH_COMMAND: gitSshCommand,
+    GIT_SSH_COMMAND: getSafeGitSshCommand(cleanedEnv),
     GH_PROMPT_DISABLED: '1',
     GCM_INTERACTIVE: 'never',
     ...(baseEnv['GIT_CONFIG_GLOBAL']
