@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2026 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -29,21 +30,23 @@ describe('AppHeader Icon Rendering', () => {
     vi.unstubAllEnvs();
   });
 
-  it('renders the default icon in standard terminals', async () => {
+  it('hides the logo by default in standard terminals', async () => {
     vi.mocked(isAppleTerminal).mockReturnValue(false);
 
     const result = await renderWithProviders(<AppHeader version="1.0.0" />);
     await result.waitUntilReady();
 
-    await expect(result).toMatchSvgSnapshot();
+    expect(result.lastFrame()).not.toContain('█');
+    expect(result.lastFrame()).toContain('Hachimi CLI');
   });
 
-  it('renders the symmetric icon in Apple Terminal', async () => {
+  it('hides the logo by default in Apple Terminal', async () => {
     vi.mocked(isAppleTerminal).mockReturnValue(true);
 
     const result = await renderWithProviders(<AppHeader version="1.0.0" />);
     await result.waitUntilReady();
 
-    await expect(result).toMatchSvgSnapshot();
+    expect(result.lastFrame()).not.toContain('█');
+    expect(result.lastFrame()).toContain('Hachimi CLI');
   });
 });

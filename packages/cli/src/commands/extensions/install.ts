@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -74,7 +75,7 @@ export async function handleInstall(args: InstallArgs) {
           '',
           `The extension source at "${absolutePath}" is not trusted.`,
           '',
-          'Trusting a folder allows Gemini CLI to load its local configurations,',
+          'Trusting a folder allows Hachimi CLI to load its local configurations,',
           'including custom commands, hooks, MCP servers, agent skills, and',
           'settings. These configurations could execute code on your behalf or',
           'change the behavior of the CLI.',

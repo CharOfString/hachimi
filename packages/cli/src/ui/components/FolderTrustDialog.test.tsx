@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -54,7 +55,7 @@ describe('FolderTrustDialog', () => {
 
     expect(lastFrame()).toContain('Do you trust the files in this folder?');
     expect(lastFrame()).toContain(
-      'Trusting a folder allows Gemini CLI to load its local configurations',
+      'Trusting a folder allows Hachimi CLI to load its local configurations',
     );
     unmount();
   });
@@ -243,7 +244,7 @@ describe('FolderTrustDialog', () => {
       <FolderTrustDialog onSelect={vi.fn()} isRestarting={true} />,
     );
 
-    expect(lastFrame()).toContain('Gemini CLI is restarting');
+    expect(lastFrame()).toContain('Hachimi CLI is restarting');
     unmount();
   });
 

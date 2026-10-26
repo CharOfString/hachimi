@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -573,7 +574,7 @@ const SETTINGS_SCHEMA = {
         requiresRestart: false,
         default: false,
         description:
-          'Show Gemini CLI model thoughts in the terminal window title during the working phase',
+          'Show Hachimi CLI model thoughts in the terminal window title during the working phase',
         showInDialog: true,
       },
       dynamicWindowTitle: {
@@ -593,7 +594,7 @@ const SETTINGS_SCHEMA = {
         requiresRestart: true,
         default: true,
         description:
-          'Show a warning when running Gemini CLI in the home directory.',
+          'Show a warning when running Hachimi CLI in the home directory.',
         showInDialog: true,
       },
       showCompatibilityWarnings: {
@@ -642,6 +643,46 @@ const SETTINGS_SCHEMA = {
         description:
           'Display tool outputs (like directory listings and file reads) in a compact, structured format.',
         showInDialog: true,
+      },
+      logo: {
+        type: 'object',
+        label: 'Logo',
+        category: 'UI',
+        requiresRestart: false,
+        default: {},
+        description: 'Custom logo configured with /logo. Hidden by default.',
+        showInDialog: false,
+        properties: {
+          mode: {
+            type: 'enum',
+            label: 'Logo mode',
+            category: 'UI',
+            requiresRestart: false,
+            default: 'off',
+            description: 'Logo rendering mode.',
+            options: [
+              { value: 'off', label: 'Off' },
+              { value: 'ascii', label: 'ASCII' },
+              { value: 'kitty', label: 'Kitty' },
+            ],
+          },
+          text: {
+            type: 'string',
+            label: 'ASCII logo',
+            category: 'UI',
+            requiresRestart: false,
+            default: '',
+            description: 'Custom ASCII artwork.',
+          },
+          image: {
+            type: 'string',
+            label: 'Logo image',
+            category: 'UI',
+            requiresRestart: false,
+            default: '',
+            description: 'Absolute path to a PNG image.',
+          },
+        },
       },
       hideBanner: {
         type: 'boolean',
@@ -2373,7 +2414,7 @@ const SETTINGS_SCHEMA = {
             requiresRestart: true,
             default: false,
             description:
-              'Automatically start the LiteRT-LM server when Gemini CLI starts and the Gemma router is enabled.',
+              'Automatically start the LiteRT-LM server when Hachimi CLI starts and the Gemma router is enabled.',
             showInDialog: true,
           },
           binaryPath: {
@@ -3111,7 +3152,7 @@ export const SETTINGS_SCHEMA_DEFINITIONS: Record<
       extension: {
         type: 'object',
         description:
-          'Metadata describing the Gemini CLI extension that owns this MCP server.',
+          'Metadata describing the Hachimi CLI extension that owns this MCP server.',
         additionalProperties: { type: ['string', 'boolean', 'number'] },
       },
       oauth: {
@@ -3228,7 +3269,7 @@ export const SETTINGS_SCHEMA_DEFINITIONS: Record<
   },
   TelemetrySettings: {
     type: 'object',
-    description: 'Telemetry configuration for Gemini CLI.',
+    description: 'Telemetry configuration for Hachimi CLI.',
     additionalProperties: false,
     properties: {
       enabled: {
@@ -3337,7 +3378,7 @@ export const SETTINGS_SCHEMA_DEFINITIONS: Record<
   CustomTheme: {
     type: 'object',
     description:
-      'Custom theme definition used for styling Gemini CLI output. Colors are provided as hex strings or named ANSI colors.',
+      'Custom theme definition used for styling Hachimi CLI output. Colors are provided as hex strings or named ANSI colors.',
     additionalProperties: false,
     properties: {
       type: {

@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2026 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -248,7 +249,7 @@ describe('<AppHeader />', () => {
     session2.unmount();
   });
 
-  it('should render the full logo when logged out', async () => {
+  it('should hide the logo by default even when logged out', async () => {
     const mockConfig = makeFakeConfig();
     vi.spyOn(mockConfig, 'getContentGeneratorConfig').mockReturnValue({
       authType: undefined,
@@ -265,8 +266,8 @@ describe('<AppHeader />', () => {
     );
     await waitUntilReady();
 
-    // Check for block characters from the logo
-    expect(lastFrame()).toContain('▗█▀▀▜▙');
+    expect(lastFrame()).not.toContain('█');
+    expect(lastFrame()).toContain('Hachimi CLI');
     expect(lastFrame()).toMatchSnapshot();
     unmount();
   });

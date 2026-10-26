@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2026 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -27,7 +28,7 @@ export class HelpCommand implements Command {
 
     const lines: string[] = [];
 
-    lines.push('Gemini CLI Help:');
+    lines.push('Hachimi CLI Help:');
     lines.push('');
     lines.push('### Basics');
     lines.push(

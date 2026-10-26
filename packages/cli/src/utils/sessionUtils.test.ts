@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -1270,7 +1271,7 @@ describe('convertSessionToHistoryFormats', () => {
         timestamp: new Date().toISOString(),
         type: 'user',
         content:
-          '<session_context>\nThis is the Gemini CLI\n</session_context>',
+          '<session_context>\nThis is the Hachimi CLI\n</session_context>',
       },
       {
         id: '2',

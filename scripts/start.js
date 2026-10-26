@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -76,7 +77,7 @@ if (!keepCiEnv) {
   if (ciKeys.length > 0) {
     ciKeys.forEach((k) => delete env[k]);
     process.stderr.write(
-      `[gemini] Removed CI env vars to keep interactive mode working in dev: ${ciKeys.join(', ')}. Set GEMINI_KEEP_CI_ENV=1 to disable.\n`,
+      `[hachimi] Removed CI env vars to keep interactive mode working in dev: ${ciKeys.join(', ')}. Set GEMINI_KEEP_CI_ENV=1 to disable.\n`,
     );
   }
 }

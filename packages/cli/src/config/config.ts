@@ -289,7 +289,7 @@ export async function parseArguments(
   yargsInstance.command(modelsCommand);
 
   yargsInstance
-    .command('$0 [query..]', 'Launch Gemini CLI', (yargsInstance) =>
+    .command('$0 [query..]', 'Launch Hachimi CLI', (yargsInstance) =>
       yargsInstance
         .positional('query', {
           description:

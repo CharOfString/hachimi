@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -76,7 +77,7 @@ describe('getUserStartupWarnings', () => {
         expect.objectContaining({
           id: 'home-directory',
           message: expect.stringContaining(
-            'Warning you are running Gemini CLI in your home directory',
+            'Warning you are running Hachimi CLI in your home directory',
           ),
           priority: WarningPriority.Low,
         }),
@@ -130,7 +131,7 @@ describe('getUserStartupWarnings', () => {
         expect.objectContaining({
           id: 'home-directory',
           message: expect.stringContaining(
-            'Warning you are running Gemini CLI in your home directory',
+            'Warning you are running Hachimi CLI in your home directory',
           ),
           priority: WarningPriority.Low,
         }),
@@ -200,7 +201,7 @@ describe('getUserStartupWarnings', () => {
       vi.mocked(isFolderTrustEnabled).mockReturnValue(true);
       vi.mocked(isWorkspaceTrusted).mockImplementation(() => {
         throw new FatalUntrustedWorkspaceError(
-          'Gemini CLI is not running in a trusted directory',
+          'Hachimi CLI is not running in a trusted directory',
         );
       });
       vi.mocked(isHeadlessMode).mockReturnValue(true);

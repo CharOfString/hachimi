@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2026 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -38,7 +39,7 @@ describe('HelpCommand', () => {
 
     const data = response.data as string;
 
-    expect(data).toContain('Gemini CLI Help:');
+    expect(data).toContain('Hachimi CLI Help:');
     expect(data).toContain('### Basics');
     expect(data).toContain('### Commands');
 

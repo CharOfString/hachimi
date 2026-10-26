@@ -269,7 +269,7 @@ export function AuthDialog({
         alignItems="flex-start"
       >
         <Text color={theme.text.primary}>
-          Logging in with Google... Restarting Gemini CLI to continue.
+          Logging in with Google... Restarting Hachimi CLI to continue.
         </Text>
       </Box>
     );

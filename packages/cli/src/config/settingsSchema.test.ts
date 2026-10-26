@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -504,7 +505,7 @@ describe('SettingsSchema', () => {
       expect(autoStartServer.requiresRestart).toBe(true);
       expect(autoStartServer.showInDialog).toBe(true);
       expect(autoStartServer.description).toBe(
-        'Automatically start the LiteRT-LM server when Gemini CLI starts and the Gemma router is enabled.',
+        'Automatically start the LiteRT-LM server when Hachimi CLI starts and the Gemma router is enabled.',
       );
 
       const binaryPath = gemmaModelRouter.properties.binaryPath;

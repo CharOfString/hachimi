@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -66,7 +67,7 @@ export const INFORMATIVE_TIPS = [
   'Enable AI-powered prompt completion while typing (/settings)…',
   'Enable debug logging of keystrokes to the console (/settings)…',
   'Enable automatic session cleanup of old conversations (/settings)…',
-  'Show Gemini CLI status in the terminal window title (/settings)…',
+  'Show Hachimi CLI status in the terminal window title (/settings)…',
   'Use the entire width of the terminal for output (/settings)…',
   'Enable screen reader mode for better accessibility (/settings)…',
   'Skip the next speaker check for faster responses (/settings)…',

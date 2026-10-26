@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2026 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -899,6 +900,19 @@ export const AppContainer = (props: AppContainerProps) => {
     }
   }, [bannerVisible, bannerText, settings, config, refreshStatic]);
 
+  useEffect(() => {
+    let previousLogo = JSON.stringify(settings.merged.ui.logo);
+
+    return settings.subscribe(() => {
+      const nextLogo = JSON.stringify(settings.merged.ui.logo);
+
+      if (nextLogo !== previousLogo) {
+        previousLogo = nextLogo;
+        refreshStatic();
+      }
+    });
+  }, [settings, refreshStatic]);
+
   const { isSettingsDialogOpen, openSettingsDialog, closeSettingsDialog } =
     useSettingsCommand();
 
@@ -1046,7 +1060,7 @@ export const AppContainer = (props: AppContainerProps) => {
         ) {
           writeToStdout(`
 ----------------------------------------------------------------
-Logging in with Google... Restarting Gemini CLI to continue.
+Logging in with Google... Restarting Hachimi CLI to continue.
 ----------------------------------------------------------------
           `);
           await relaunchApp();

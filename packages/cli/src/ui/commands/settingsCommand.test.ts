@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -30,7 +31,7 @@ describe('settingsCommand', () => {
   it('should have the correct name and description', () => {
     expect(settingsCommand.name).toBe('settings');
     expect(settingsCommand.description).toBe(
-      'View and edit Gemini CLI settings',
+      'View and edit Hachimi CLI settings',
     );
   });
 });

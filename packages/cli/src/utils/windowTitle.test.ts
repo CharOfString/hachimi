@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -39,7 +40,7 @@ describe('computeTerminalTitle', () => {
         showThoughts: true,
         useDynamicTitle: false,
       } as TerminalTitleOptions,
-      expected: 'Gemini CLI (my-project)'.padEnd(80, ' '),
+      expected: 'Hachimi CLI (my-project)'.padEnd(80, ' '),
       exact: true,
     },
     {
@@ -234,7 +235,7 @@ describe('computeTerminalTitle', () => {
     });
 
     expect(title.length).toBe(80);
-    expect(title).toContain('Gemini CLI (CCCCC');
+    expect(title).toContain('Hachimi CLI (CCCCC');
     expect(title).toContain('…)');
   });
 });

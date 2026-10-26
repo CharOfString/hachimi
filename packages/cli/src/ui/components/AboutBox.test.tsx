@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -29,7 +30,7 @@ describe('AboutBox', () => {
       <AboutBox {...defaultProps} />,
     );
     const output = lastFrame();
-    expect(output).toContain('About Gemini CLI');
+    expect(output).toContain('About Hachimi CLI');
     expect(output).toContain('1.0.0');
     expect(output).toContain('mock-commit-hash');
     expect(output).toContain('gemini-pro');

@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2026 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -48,7 +49,7 @@ export const LoginRestartDialog = ({
 
   const displayMessage =
     message ??
-    "You've successfully signed in with Google. Gemini CLI needs to be restarted.";
+    "You've successfully signed in with Google. Hachimi CLI needs to be restarted.";
 
   return (
     <Box

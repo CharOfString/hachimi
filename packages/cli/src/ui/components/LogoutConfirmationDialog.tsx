@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -66,7 +67,8 @@ export const LogoutConfirmationDialog: React.FC<
             You are now signed out
           </Text>
           <Text color={theme.text.secondary}>
-            Sign in again to continue using Gemini CLI, or exit the application.
+            Sign in again to continue using Hachimi CLI, or exit the
+            application.
           </Text>
         </Box>
 
