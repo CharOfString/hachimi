@@ -1,14 +1,26 @@
 # Hachimi CLI
-Gemini CLI fork with custom API provider support (account system ported from QWen Code).
-![](./docs/screenshots/account_sys.png)
+
+Gemini CLI fork with custom API provider support (account system ported from
+QWen Code). ![](./docs/screenshots/account_sys.png)
 
 Build and install from this checkout (Node.js 20 or newer):
 
 ```sh
 npm ci
-npm install -g .
+npm run build:install
 hachimi --help
 ```
+
+On Linux and macOS, `build:install` copies the built application and its locally
+installed native dependencies into `~/.local/lib/hachimi-cli`, with the command
+at `~/.local/bin/hachimi`. Ensure `~/.local/bin` is on your PATH. The installed
+copy does not depend on this checkout; Node.js is still required.
+
+Use `npm run build:install -- --prefix /your/prefix` to choose another location.
+After a successful build, `npm run install:local` installs without rebuilding.
+Neither command downloads dependencies: install them with `npm ci` first (or
+`npm ci --offline` if they are already cached). Run `build:install` again to
+update.
 
 The standalone build (`npm run build:binary`) also produces `hachimi` (or
 `hachimi.exe` on Windows). Configuration still uses `.gemini`, `GEMINI.md`, and
