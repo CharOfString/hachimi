@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -69,12 +70,17 @@ export async function createPolicyEngineConfig(
       settings.admin?.secureModeEnabled,
   };
 
-  return createCorePolicyEngineConfig(
+  const config = await createCorePolicyEngineConfig(
     policySettings,
     approvalMode,
     undefined,
     interactive,
   );
+
+  return {
+    ...config,
+    approvalPolicyMode: settings.general?.approvalPolicyMode ?? 'hachimi',
+  };
 }
 
 export function createPolicyUpdater(

@@ -31,6 +31,39 @@ Use `/auth` → **Provider accounts** for Qwen-derived presets, multiple account
 and custom endpoints. Use `/model` to switch the active account's models. See
 [provider account management](docs/hachimi/provider-accounts.md).
 
+## 审批策略 / Approval policy
+
+默认使用 **hachimi** 审批策略，可随时切换：
+
+```text
+/approve mode          # 查看当前审批机制
+/approve mode hachimi  # Hachimi 策略（默认）
+/approve mode default  # 原版 Gemini 策略
+```
+
+`hachimi`：在 **Auto accept edits / auto_edit** 状态下，`write_file`、`replace`
+编辑项目的构建配置文件（例如
+`package.json`、`CMakeLists.txt`、`Makefile`）也自动放行，不再因为“构建文件”单独弹出审批。显式 deny/ask 规则、路径检查和 hook 审批仍然生效。
+
+`default`：恢复原版 Gemini 的审批规则，构建配置文件仍需单独确认。
+
+`hachimi/default` 只选择策略，不改变当前会话模式。策略写入用户
+`.gemini/settings.json` 的
+`general.approvalPolicyMode`，立即生效并在重启后保留。
+
+两套机制各自定义 Shift+Tab 行为：
+
+- `hachimi`：**Normal → Auto Edit → Plan → YOLO →
+  Normal**，自动跳过当前不可用的 Plan 或被禁用的 YOLO。
+- `default`：使用原版 Gemini 循环，即 **Normal → Auto Edit → Plan →
+  Normal**；Plan 不可用时从 Auto
+  Edit 返回 Normal。处于 YOLO 时，Shift+Tab 进入 Auto Edit。
+
+切换审批机制不会立刻改变当前循环状态。下一次按 Shift+Tab 时按照新机制计算下一个状态。管理员设置、工作区信任、显式审批规则及已有安全检查继续生效；已经显示的审批不会被自动确认。
+
+这一审批机制切换方式和循环预设参考 Qwen Code；来源、版本及修改记录见
+[NOTICE](./NOTICE) 和[开源合规说明](./docs/hachimi/open-source-compliance.md)。
+
 ---
 
 > [!NOTE]
@@ -75,7 +108,9 @@ for recommended system specifications and a detailed installation guide.
 ```bash
 npm run start
 ```
+
 #### Install to local
+
 ```bash
 npm run build:install
 ```

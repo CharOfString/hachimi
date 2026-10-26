@@ -226,6 +226,20 @@ const SETTINGS_SCHEMA = {
         description: 'Enable Vim keybindings',
         showInDialog: true,
       },
+      approvalPolicyMode: {
+        type: 'enum',
+        label: 'Approval Policy Mode',
+        category: 'General',
+        requiresRestart: false,
+        default: 'hachimi',
+        description:
+          'Hachimi honors auto-edit for build files; default preserves classic approval behavior. Configure with /approve mode.',
+        showInDialog: false,
+        options: [
+          { value: 'hachimi', label: 'Hachimi' },
+          { value: 'default', label: 'Default (classic)' },
+        ],
+      },
       defaultApprovalMode: {
         type: 'enum',
         label: 'Default Approval Mode',

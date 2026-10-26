@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -137,6 +138,36 @@ describe('useApprovalModeIndicator', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockConfigInstance = new (Config as any)() as MockConfigInstanceShape;
   });
+
+  it.each([
+    [ApprovalMode.DEFAULT, true, false, ApprovalMode.AUTO_EDIT],
+    [ApprovalMode.AUTO_EDIT, true, false, ApprovalMode.PLAN],
+    [ApprovalMode.PLAN, true, false, ApprovalMode.YOLO],
+    [ApprovalMode.YOLO, true, false, ApprovalMode.DEFAULT],
+    [ApprovalMode.AUTO_EDIT, false, false, ApprovalMode.YOLO],
+    [ApprovalMode.PLAN, true, true, ApprovalMode.DEFAULT],
+    [ApprovalMode.AUTO_EDIT, false, true, ApprovalMode.DEFAULT],
+  ])(
+    'cycles Hachimi from %s (plan=%s, yolo disabled=%s) to %s',
+    async (current, allowPlanMode, yoloDisabled, expected) => {
+      mockConfigInstance.getApprovalMode.mockReturnValue(current);
+      mockConfigInstance.isYoloModeDisabled.mockReturnValue(yoloDisabled);
+      const onApprovalModeChange = vi.fn();
+      await renderHook(() =>
+        useApprovalModeIndicator({
+          config: mockConfigInstance as unknown as ActualConfigType,
+          approvalPolicyMode: 'hachimi',
+          allowPlanMode,
+          onApprovalModeChange,
+        }),
+      );
+      act(() => {
+        capturedUseKeypressHandler({ name: 'tab', shift: true } as Key);
+      });
+      expect(mockConfigInstance.setApprovalMode).toHaveBeenCalledWith(expected);
+      expect(onApprovalModeChange).toHaveBeenCalledWith(expected);
+    },
+  );
 
   it('should initialize with ApprovalMode.AUTO_EDIT if config.getApprovalMode returns ApprovalMode.AUTO_EDIT', async () => {
     mockConfigInstance.getApprovalMode.mockReturnValue(ApprovalMode.AUTO_EDIT);

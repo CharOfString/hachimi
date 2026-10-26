@@ -5,8 +5,9 @@ Review date: 2026-10-26.
 ## Scope and provenance
 
 This review covers the command/package rename, the provider-account feature, and
-the associated source formatting and distribution changes. It is not a license
-audit of every dependency already present in the upstream repository.
+the approval presets, and the associated source formatting and distribution
+changes. It is not a license audit of every dependency already present in the
+upstream repository.
 
 The base repository is Gemini CLI, distributed under Apache-2.0. Its LICENSE and
 existing Google copyright notices are retained. Modified source files carry a
@@ -25,6 +26,13 @@ unimported Qwen modules were not copied.
 Account storage, protocol adapters and account-management UI are Hachimi
 implementations informed by the reference workflow. No new third-party npm
 dependencies were added for this feature.
+
+Approval preset behavior references Qwen's `approvalModeCommand.ts`,
+`useAutoAcceptIndicator.ts` and `approval-mode.ts` at the same revision. Hachimi
+adapts approval-mode cycling in its existing hook, retaining Google's header and
+adding the modification notice. Its command switches only between the Hachimi
+and classic Gemini mechanisms. Qwen's AUTO classifier and session-mode command
+behavior are not imported. These changes add no dependencies.
 
 ## License obligations and distribution
 

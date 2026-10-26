@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2026 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -24,6 +25,7 @@ import {
   type SafetyCheckerRule,
   type HookCheckerRule,
   ApprovalMode,
+  type ApprovalPolicyMode,
   type CheckResult,
   ALWAYS_ALLOW_PRIORITY_FRACTION,
 } from './types.js';
@@ -246,6 +248,7 @@ export class PolicyEngine {
   private readonly defaultDecision: PolicyDecision;
   private readonly nonInteractive: boolean;
   private readonly disableAlwaysAllow: boolean;
+  private approvalPolicyMode: ApprovalPolicyMode;
   private readonly checkerRunner?: CheckerRunner;
   private approvalMode: ApprovalMode;
   private readonly sandboxManager: SandboxManager;
@@ -301,6 +304,7 @@ export class PolicyEngine {
       (this.nonInteractive ? PolicyDecision.DENY : PolicyDecision.ASK_USER);
     this.disableAlwaysAllow = config.disableAlwaysAllow ?? false;
     this.checkerRunner = checkerRunner;
+    this.approvalPolicyMode = config.approvalPolicyMode ?? 'hachimi';
     this.approvalMode = config.approvalMode ?? ApprovalMode.DEFAULT;
     this.sandboxManager = config.sandboxManager ?? new NoopSandboxManager();
     this.isTrustedFolderFn = config.isTrustedFolder;
@@ -325,6 +329,14 @@ export class PolicyEngine {
    */
   getApprovalMode(): ApprovalMode {
     return this.approvalMode;
+  }
+
+  getApprovalPolicyMode(): ApprovalPolicyMode {
+    return this.approvalPolicyMode;
+  }
+
+  setApprovalPolicyMode(mode: ApprovalPolicyMode): void {
+    this.approvalPolicyMode = mode;
   }
 
   private isAlwaysAllowRule(rule: PolicyRule): boolean {
@@ -900,7 +912,6 @@ export class PolicyEngine {
         }
       }
 
-      // Build File Protection: Always require user confirmation when modifying build configuration files
       const isFileEditTool = toolNamesToTry.some((name) => {
         if (
           EDIT_TOOL_NAMES.has(name) ||
@@ -922,7 +933,13 @@ export class PolicyEngine {
         const tokens = name.toLowerCase().split(/[^a-z0-9]+/);
         return tokens.some((token) => editKeywords.has(token));
       });
-      if (isFileEditTool) {
+      if (
+        isFileEditTool &&
+        !(
+          this.approvalPolicyMode === 'hachimi' &&
+          this.approvalMode === ApprovalMode.AUTO_EDIT
+        )
+      ) {
         let targetPath = extractFilePathFromArgs(toolCall.args);
         if (targetPath) {
           targetPath = targetPath.trim();

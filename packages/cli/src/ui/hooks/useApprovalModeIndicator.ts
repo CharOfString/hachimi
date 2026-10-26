@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -21,6 +22,7 @@ export interface UseApprovalModeIndicatorArgs {
   onApprovalModeChange?: (mode: ApprovalMode) => void;
   isActive?: boolean;
   allowPlanMode?: boolean;
+  approvalPolicyMode?: 'hachimi' | 'default';
 }
 
 export function useApprovalModeIndicator({
@@ -29,6 +31,7 @@ export function useApprovalModeIndicator({
   onApprovalModeChange,
   isActive = true,
   allowPlanMode = false,
+  approvalPolicyMode = 'default',
 }: UseApprovalModeIndicatorArgs): ApprovalMode {
   const keyMatchers = useKeyMatchers();
   const currentConfigValue = config.getApprovalMode();
@@ -73,22 +76,37 @@ export function useApprovalModeIndicator({
             : ApprovalMode.YOLO;
       } else if (keyMatchers[Command.CYCLE_APPROVAL_MODE](key)) {
         const currentMode = config.getApprovalMode();
-        switch (currentMode) {
-          case ApprovalMode.DEFAULT:
-            nextApprovalMode = ApprovalMode.AUTO_EDIT;
-            break;
-          case ApprovalMode.AUTO_EDIT:
-            nextApprovalMode = allowPlanMode
-              ? ApprovalMode.PLAN
-              : ApprovalMode.DEFAULT;
-            break;
-          case ApprovalMode.PLAN:
-            nextApprovalMode = ApprovalMode.DEFAULT;
-            break;
-          case ApprovalMode.YOLO:
-            nextApprovalMode = ApprovalMode.AUTO_EDIT;
-            break;
-          default:
+        if (approvalPolicyMode === 'hachimi') {
+          const modes = [ApprovalMode.DEFAULT, ApprovalMode.AUTO_EDIT];
+
+          if (allowPlanMode) {
+            modes.push(ApprovalMode.PLAN);
+          }
+
+          if (!config.isYoloModeDisabled()) {
+            modes.push(ApprovalMode.YOLO);
+          }
+
+          nextApprovalMode =
+            modes[(modes.indexOf(currentMode) + 1) % modes.length];
+        } else {
+          switch (currentMode) {
+            case ApprovalMode.DEFAULT:
+              nextApprovalMode = ApprovalMode.AUTO_EDIT;
+              break;
+            case ApprovalMode.AUTO_EDIT:
+              nextApprovalMode = allowPlanMode
+                ? ApprovalMode.PLAN
+                : ApprovalMode.DEFAULT;
+              break;
+            case ApprovalMode.PLAN:
+              nextApprovalMode = ApprovalMode.DEFAULT;
+              break;
+            case ApprovalMode.YOLO:
+              nextApprovalMode = ApprovalMode.AUTO_EDIT;
+              break;
+            default:
+          }
         }
       }
 

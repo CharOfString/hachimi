@@ -2621,6 +2621,7 @@ Logging in with Google... Restarting Hachimi CLI to continue.
     onApprovalModeChange: handleApprovalModeChangeWithUiReveal,
     isActive: !embeddedShellFocused,
     allowPlanMode,
+    approvalPolicyMode: config.getPolicyEngine().getApprovalPolicyMode(),
   });
 
   useRunEventNotifications({

@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -4448,6 +4449,106 @@ describe('PolicyEngine', () => {
     });
   });
 
+  describe('Hachimi approval policy mode', () => {
+    it.each(['write_file', 'replace'])(
+      'auto-approves %s for project build files and restores classic behavior when switched',
+      async (name) => {
+        const engine = new PolicyEngine({
+          rules: [{ toolName: name, decision: PolicyDecision.ALLOW }],
+          approvalMode: ApprovalMode.AUTO_EDIT,
+        });
+        const call = {
+          name,
+          args: { file_path: 'package.json', content: '{}' },
+        };
+        expect(engine.getApprovalPolicyMode()).toBe('hachimi');
+        expect((await engine.check(call, undefined)).decision).toBe(
+          PolicyDecision.ALLOW,
+        );
+        engine.setApprovalPolicyMode('default');
+        expect((await engine.check(call, undefined)).decision).toBe(
+          PolicyDecision.ASK_USER,
+        );
+        engine.setApprovalPolicyMode('hachimi');
+        expect((await engine.check(call, undefined)).decision).toBe(
+          PolicyDecision.ALLOW,
+        );
+      },
+    );
+
+    it('does not override an explicit deny or ask rule', async () => {
+      for (const decision of [PolicyDecision.DENY, PolicyDecision.ASK_USER]) {
+        const engine = new PolicyEngine({
+          rules: [{ toolName: 'write_file', decision }],
+          approvalMode: ApprovalMode.AUTO_EDIT,
+        });
+        expect(
+          (
+            await engine.check(
+              { name: 'write_file', args: { file_path: 'package.json' } },
+              undefined,
+            )
+          ).decision,
+        ).toBe(decision);
+      }
+    });
+
+    it('continues to apply path safety checks in auto-edit mode', async () => {
+      const runner = {
+        runChecker: vi
+          .fn()
+          .mockResolvedValue({ decision: SafetyCheckDecision.DENY }),
+      } as unknown as CheckerRunner;
+      const engine = new PolicyEngine(
+        {
+          rules: [{ toolName: 'write_file', decision: PolicyDecision.ALLOW }],
+          approvalMode: ApprovalMode.AUTO_EDIT,
+          checkers: [
+            {
+              toolName: 'write_file',
+              checker: {
+                type: 'in-process',
+                name: InProcessCheckerType.ALLOWED_PATH,
+              },
+            },
+          ],
+        },
+        runner,
+      );
+      expect(
+        (
+          await engine.check(
+            {
+              name: 'write_file',
+              args: { file_path: '/outside/package.json' },
+            },
+            undefined,
+          )
+        ).decision,
+      ).toBe(PolicyDecision.DENY);
+      expect(runner.runChecker).toHaveBeenCalledOnce();
+    });
+
+    it('allows headless auto-edits but retains classic headless rejection', async () => {
+      const engine = new PolicyEngine({
+        rules: [{ toolName: 'write_file', decision: PolicyDecision.ALLOW }],
+        approvalMode: ApprovalMode.AUTO_EDIT,
+        nonInteractive: true,
+      });
+      const call = {
+        name: 'write_file',
+        args: { file_path: 'CMakeLists.txt' },
+      };
+      expect((await engine.check(call, undefined)).decision).toBe(
+        PolicyDecision.ALLOW,
+      );
+      engine.setApprovalPolicyMode('default');
+      expect((await engine.check(call, undefined)).decision).toBe(
+        PolicyDecision.DENY,
+      );
+    });
+  });
+
   describe('Build File Protection', () => {
     it('should allow regular files in AUTO_EDIT mode but require ASK_USER for build files', async () => {
       const rules: PolicyRule[] = [
@@ -4463,6 +4564,7 @@ describe('PolicyEngine', () => {
         },
       ];
       const engine = new PolicyEngine({
+        approvalPolicyMode: 'default',
         rules,
         approvalMode: ApprovalMode.AUTO_EDIT,
       });
@@ -4521,6 +4623,7 @@ describe('PolicyEngine', () => {
 
     it('should require ASK_USER for build files even in YOLO mode', async () => {
       const engine = new PolicyEngine({
+        approvalPolicyMode: 'default',
         approvalMode: ApprovalMode.YOLO,
       });
 
@@ -4553,6 +4656,7 @@ describe('PolicyEngine', () => {
         },
       ];
       const engine = new PolicyEngine({
+        approvalPolicyMode: 'default',
         rules,
         nonInteractive: true,
       });

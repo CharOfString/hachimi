@@ -19,6 +19,7 @@ import {
   getAdminErrorMessage,
   AuthType,
 } from '@google/gemini-cli-core';
+import { approveCommand } from '../ui/commands/approveCommand.js';
 import { aboutCommand } from '../ui/commands/aboutCommand.js';
 import { agentsCommand } from '../ui/commands/agentsCommand.js';
 import { authCommand } from '../ui/commands/authCommand.js';
@@ -124,6 +125,7 @@ export class BuiltinCommandLoader implements ICommandLoader {
 
     const allDefinitions: Array<SlashCommand | null> = [
       aboutCommand,
+      approveCommand,
       ...(this.config?.isAgentsEnabled() ? [agentsCommand] : []),
       authCommand,
       bugCommand,

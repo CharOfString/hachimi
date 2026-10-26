@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -11,9 +12,10 @@ import { EditTool } from './edit.js';
 import { WriteFileTool } from './write-file.js';
 import { WebFetchTool } from './web-fetch.js';
 import { ToolConfirmationOutcome } from './tools.js';
-import { ApprovalMode } from '../policy/types.js';
+import { ApprovalMode, PolicyDecision } from '../policy/types.js';
+import { PolicyEngine } from '../policy/policy-engine.js';
 import { MessageBusType } from '../confirmation-bus/types.js';
-import type { MessageBus } from '../confirmation-bus/message-bus.js';
+import { MessageBus } from '../confirmation-bus/message-bus.js';
 import type { Config } from '../config/config.js';
 import path from 'node:path';
 import { isSubpath } from '../utils/paths.js';
@@ -107,6 +109,30 @@ describe('Tool Confirmation Policy Updates', () => {
     }
     vi.restoreAllMocks();
   });
+
+  it.each(['hachimi', 'default'] as const)(
+    'uses the %s policy through the real confirmation bus for package.json',
+    async (approvalPolicyMode) => {
+      vi.spyOn(mockConfig, 'getApprovalMode').mockReturnValue(
+        ApprovalMode.AUTO_EDIT,
+      );
+      const engine = new PolicyEngine({
+        approvalMode: ApprovalMode.AUTO_EDIT,
+        approvalPolicyMode,
+        rules: [{ toolName: 'write_file', decision: PolicyDecision.ALLOW }],
+      });
+      const bus = new MessageBus(engine);
+      const tool = new WriteFileTool(mockConfig, bus);
+      const invocation = tool.build({
+        file_path: path.join(rootDir, 'package.json'),
+        content: '{}',
+      });
+      const confirmation = await invocation.shouldConfirmExecute(
+        new AbortController().signal,
+      );
+      expect(confirmation === false).toBe(approvalPolicyMode === 'hachimi');
+    },
+  );
 
   const tools = [
     {

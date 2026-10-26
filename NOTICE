@@ -10,7 +10,7 @@ Copyright 2025 Google LLC
 Source: https://github.com/google-gemini/gemini-cli
 Upstream base: cd1b45c2db0a5ea7b7fc3b67c1ba5879601d6005 (see repository history for the full revision).
 
-Qwen Code provider presets
+Qwen Code provider presets and approval workflow
 Copyright 2025 Google LLC
 Copyright 2025 Qwen
 Copyright 2026 Qwen Team
@@ -18,6 +18,14 @@ Source: https://github.com/QwenLM/qwen-code
 Reference revision: 64b2554801e45bef1d1482325cdf35d80a0ba79e
 Source files: packages/core/src/providers/presets/*.ts
 Adapted file: packages/core/src/providers/presets.ts
+Approval workflow references:
+- packages/cli/src/ui/commands/approvalModeCommand.ts
+- packages/cli/src/ui/hooks/useAutoAcceptIndicator.ts
+- packages/core/src/config/approval-mode.ts
+Hachimi implementations: packages/cli/src/ui/commands/approveCommand.ts and
+packages/cli/src/ui/hooks/useApprovalModeIndicator.ts.
+Approval-mode cycling is adapted to Hachimi policies, feature availability and
+existing trust restrictions; Qwen AUTO and session-mode commands are not imported.
 License: Apache-2.0; see third_party/qwen-code/LICENSE in source distributions
 and licenses/qwen-code-LICENSE under bundle/ or dist/ in npm packages.
 Standalone distributions carry licenses/qwen-code-LICENSE beside the executable.

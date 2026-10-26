@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -308,6 +309,28 @@ describe('Policy Engine Integration Tests', () => {
         (await engine.check({ name: 'dangerous-tool' }, undefined)).decision,
       ).toBe(PolicyDecision.DENY);
     });
+
+    it.each(['hachimi', 'default'] as const)(
+      'loads the saved %s approval policy',
+      async (mode) => {
+        const config = await createPolicyEngineConfig(
+          { general: { approvalPolicyMode: mode } },
+          ApprovalMode.AUTO_EDIT,
+        );
+        const engine = new PolicyEngine(config);
+        expect(engine.getApprovalPolicyMode()).toBe(mode);
+        const result = await engine.check(
+          {
+            name: 'write_file',
+            args: { file_path: 'package.json', content: '{}' },
+          },
+          undefined,
+        );
+        expect(result.decision).toBe(
+          mode === 'hachimi' ? PolicyDecision.ALLOW : PolicyDecision.ASK_USER,
+        );
+      },
+    );
 
     it('should handle AUTO_EDIT mode correctly', async () => {
       const settings: Settings = {};
