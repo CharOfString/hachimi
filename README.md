@@ -66,6 +66,7 @@
 - Added advanced level of approval control with four levels: manual, accept-edit, planning, YOLO (ported from [qwen-code](https://github.com/qwenLM/qwen-code)).
 - Send you a notification while it asks something to approve.
 - You may now customize the logo w/ your own ACSII art, or even PNG if your terminal supports Kitty graphics protocol.
+- You may set global output language.
 
 
 
@@ -198,6 +199,15 @@ You may use following command to toggle it (restart is required):
 ```
 > /showver on
 > /showver off
+```
+
+#### Set Global Language
+> **Note**: Consider that some TTY cannot render all languages, the language output under TTY is force-set to English.
+
+You may simply create a `~/.gemini/LANGUAGE_PREFERENCE.md` and write a prompt in it such as:
+
+```
+Please response in ZH_CN while keeping all comments in English
 ```
 
 <!-- ROADMAP -->

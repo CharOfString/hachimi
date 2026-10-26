@@ -26,6 +26,10 @@ Hachimi implementations: packages/cli/src/ui/commands/approveCommand.ts and
 packages/cli/src/ui/hooks/useApprovalModeIndicator.ts.
 Approval-mode cycling is adapted to Hachimi policies, feature availability and
 existing trust restrictions; Qwen AUTO and session-mode commands are not imported.
+Language preference reference: packages/cli/src/i18n/languageUtils.ts
+(Qwen's global output-language.md rule file). Hachimi implementation:
+packages/core/src/utils/languagePreference.ts; no Qwen source or prompt text
+is imported.
 License: Apache-2.0; see third_party/qwen-code/LICENSE in source distributions
 and licenses/qwen-code-LICENSE under bundle/ or dist/ in npm packages.
 Standalone distributions carry licenses/qwen-code-LICENSE beside the executable.
@@ -37,6 +41,8 @@ Modifications by CharOfString <root@charofstring.cc>:
   preserving endpoint choices and selected chat-model metadata while omitting
   dedicated image-generation routes.
 - Added protocol adapters and integrated model/context selection with the CLI.
+- Added a global LANGUAGE_PREFERENCE.md response-language preference that is
+  read at session start and overridden with English on the Linux virtual console.
 - Updated tests, documentation, source formatting and distribution notices.
 
 Product and provider names identify compatibility or the origin of the work.

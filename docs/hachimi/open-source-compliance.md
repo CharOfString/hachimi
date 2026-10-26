@@ -34,6 +34,15 @@ adding the modification notice. Its command switches only between the Hachimi
 and classic Gemini mechanisms. Qwen's AUTO classifier and session-mode command
 behavior are not imported. These changes add no dependencies.
 
+The global response-language preference is a Hachimi implementation in
+`packages/core/src/utils/languagePreference.ts`, informed by the idea behind
+Qwen's `packages/cli/src/i18n/languageUtils.ts` (a global `output-language.md`
+rule file) at the same revision. It reads a user-written
+`~/.gemini/LANGUAGE_PREFERENCE.md` instead of generating a rule file, and adds
+Linux virtual console detection that forces English. No Qwen source, prompt text
+or language tables are copied, and it adds no dependencies. Google's
+`promptProvider.ts` retains its header and carries the modification notice.
+
 ## License obligations and distribution
 
 The review uses the authoritative

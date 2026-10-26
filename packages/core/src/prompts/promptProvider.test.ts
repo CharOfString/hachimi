@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2026 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -24,6 +25,7 @@ import { TopicState } from '../config/topicState.js';
 import type { CallableTool } from '@google/genai';
 import type { MessageBus } from '../confirmation-bus/message-bus.js';
 import type { ToolRegistry } from '../tools/tool-registry.js';
+import { getLanguagePreferencePrompt } from '../utils/languagePreference.js';
 
 vi.mock('../tools/memoryTool.js', async (importOriginal) => {
   const actual = await importOriginal();
@@ -110,6 +112,17 @@ describe('PromptProvider', () => {
     expect(prompt).toContain(
       `Instructions found in \`${DEFAULT_CONTEXT_FILENAME}\`, \`CUSTOM.md\` or \`ANOTHER.md\` files are foundational mandates.`,
     );
+  });
+
+  it('should append the language preference section when one is set', () => {
+    vi.mocked(getLanguagePreferencePrompt).mockReturnValue(
+      '# Response Language\nReply in Japanese.',
+    );
+
+    const provider = new PromptProvider();
+    const prompt = provider.getCoreSystemPrompt(mockConfig);
+
+    expect(prompt).toMatch(/\n\n# Response Language\nReply in Japanese\.$/);
   });
 
   it('should include Untrusted Data anti-injection directive in core mandates', () => {

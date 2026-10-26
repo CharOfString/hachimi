@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2026 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -36,6 +37,7 @@ import {
   getProjectMemoryIndexFilePath,
 } from '../tools/memoryTool.js';
 import type { AgentLoopContext } from '../config/agent-loop-context.js';
+import { getLanguagePreferencePrompt } from '../utils/languagePreference.js';
 
 /**
  * Orchestrates prompt generation by gathering context and building options.
@@ -271,6 +273,11 @@ export class PromptProvider {
 
     // Sanitize erratic newlines from composition
     let sanitizedPrompt = finalPrompt.replace(/\n{3,}/g, '\n\n');
+
+    const languagePreference = getLanguagePreferencePrompt();
+    if (languagePreference) {
+      sanitizedPrompt += `\n\n${languagePreference}`;
+    }
 
     // Context Reinjection (Active Topic)
     if (isTopicUpdateNarrationEnabled) {

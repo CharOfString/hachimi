@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -56,4 +57,11 @@ vi.mock('./src/config/storage.js', async (importOriginal) => {
     () => 'project-slug',
   );
   return actual;
+});
+
+// Keep system prompts independent of the developer's ~/.gemini and terminal.
+vi.mock('./src/utils/languagePreference.js', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('./src/utils/languagePreference.js')>();
+  return { ...actual, getLanguagePreferencePrompt: vi.fn(() => '') };
 });
