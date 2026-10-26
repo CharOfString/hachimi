@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -15,6 +16,11 @@ import {
   disableBracketedPasteMode,
   disableMouseEvents,
 } from '@google/gemini-cli-core';
+import {
+  kittyGraphicsQueries,
+  parseKittyGraphicsSupport,
+  terminalPassthrough,
+} from './kittyGraphicsSupport.js';
 import { parseColor } from '../themes/color-utils.js';
 
 export type TerminalBackgroundColor = string | undefined;
@@ -80,6 +86,8 @@ export class TerminalCapabilityManager {
   private detectionComplete = false;
   private terminalBackgroundColor: TerminalBackgroundColor;
   private kittySupported = false;
+  private kittyGraphics = false;
+  private kittyPlaceholders = false;
   private kittyEnabled = false;
   private modifyOtherKeysSupported = false;
   private terminalName: string | undefined;
@@ -147,6 +155,9 @@ export class TerminalCapabilityManager {
         if (!originalRawMode) {
           process.stdin.setRawMode(false);
         }
+        const graphics = parseKittyGraphicsSupport(buffer, this.terminalName);
+        this.kittyGraphics = graphics.graphics;
+        this.kittyPlaceholders = graphics.placeholders;
         this.detectionComplete = true;
         resolve();
       };
@@ -249,9 +260,12 @@ export class TerminalCapabilityManager {
           TerminalCapabilityManager.HIDDEN_MODE +
             TerminalCapabilityManager.KITTY_QUERY +
             TerminalCapabilityManager.OSC_11_QUERY +
-            TerminalCapabilityManager.TERMINAL_NAME_QUERY +
+            terminalPassthrough(TerminalCapabilityManager.TERMINAL_NAME_QUERY) +
             TerminalCapabilityManager.MODIFY_OTHER_KEYS_QUERY +
-            TerminalCapabilityManager.DEVICE_ATTRIBUTES_QUERY +
+            kittyGraphicsQueries() +
+            terminalPassthrough(
+              TerminalCapabilityManager.DEVICE_ATTRIBUTES_QUERY,
+            ) +
             TerminalCapabilityManager.CLEAR_LINE_AND_RETURN +
             TerminalCapabilityManager.RESET_ATTRIBUTES,
         );
@@ -285,6 +299,14 @@ export class TerminalCapabilityManager {
 
   getTerminalName(): string | undefined {
     return this.terminalName;
+  }
+
+  supportsKittyGraphics(): boolean {
+    return this.kittyGraphics;
+  }
+
+  supportsKittyUnicodePlaceholders(): boolean {
+    return this.kittyPlaceholders;
   }
 
   isKittyProtocolEnabled(): boolean {

@@ -7,6 +7,7 @@
 import { constants } from 'node:fs';
 import { open } from 'node:fs/promises';
 import stringWidth from 'string-width';
+import { terminalPassthrough } from './kittyGraphicsSupport.js';
 
 export async function readLogoFile(
   path: string,
@@ -95,16 +96,15 @@ export function validatePngLogo(data: Buffer): void {
 }
 
 export function kittyCommand(payload: string): string {
-  const command = `\x1b_G${payload}\x1b\\`;
-
-  if (process.env['TMUX']) {
-    return `\x1bPtmux;${command.replaceAll('\x1b', '\x1b\x1b')}\x1b\\`;
-  }
-
-  return command;
+  return terminalPassthrough(`\x1b_G${payload}\x1b\\`);
 }
 
-export function kittyUpload(data: Buffer, id: number, columns: number): string {
+export function kittyUpload(
+  data: Buffer,
+  id: number,
+  columns: number,
+  placeholders = true,
+): string {
   const encoded = data.toString('base64');
   const chunks: string[] = [];
 
@@ -112,7 +112,7 @@ export function kittyUpload(data: Buffer, id: number, columns: number): string {
     const more = offset + 4096 < encoded.length ? 1 : 0;
     const parameters =
       offset === 0
-        ? `a=T,f=100,t=d,U=1,q=2,i=${id},c=${columns},r=6,m=${more}`
+        ? `a=T,f=100,t=d,${placeholders ? 'U=1' : 'C=1,p=1'},q=2,i=${id},c=${columns},r=6,m=${more}`
         : `m=${more},q=2`;
     chunks.push(
       kittyCommand(`${parameters};${encoded.slice(offset, offset + 4096)}`),

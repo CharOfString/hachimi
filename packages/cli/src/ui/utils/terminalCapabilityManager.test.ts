@@ -1,11 +1,16 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { TerminalCapabilityManager } from './terminalCapabilityManager.js';
+import {
+  GRAPHICS_QUERY_ID,
+  PLACEHOLDER_QUERY_ID,
+} from './kittyGraphicsSupport.js';
 import { EventEmitter } from 'node:events';
 import {
   enableKittyKeyboardProtocol,
@@ -86,6 +91,27 @@ describe('TerminalCapabilityManager', () => {
       value: originalStdout,
       configurable: true,
     });
+  });
+
+  it('detects graphics and placeholder replies split across input chunks before DA1', async () => {
+    const manager = TerminalCapabilityManager.getInstance();
+    const detection = manager.detectCapabilities();
+    const response = `\x1b_Gi=${GRAPHICS_QUERY_ID};OK\x1b\\\x1b_Gi=${PLACEHOLDER_QUERY_ID},e=T,U=1;OK\x1b\\`;
+    stdin.emit('data', Buffer.from(response.slice(0, 12)));
+    stdin.emit('data', Buffer.from(response.slice(12)));
+    stdin.emit('data', Buffer.from('\x1b[?62c'));
+    await detection;
+    expect(manager.supportsKittyGraphics()).toBe(true);
+    expect(manager.supportsKittyUnicodePlaceholders()).toBe(true);
+  });
+
+  it('keeps graphics disabled when the terminal only answers keyboard and DA1 queries', async () => {
+    const manager = TerminalCapabilityManager.getInstance();
+    const detection = manager.detectCapabilities();
+    stdin.emit('data', Buffer.from('\x1b[?1u\x1b[?62c'));
+    await detection;
+    expect(manager.supportsKittyGraphics()).toBe(false);
+    expect(manager.supportsKittyUnicodePlaceholders()).toBe(false);
   });
 
   it('should detect Kitty support when u response is received', async () => {

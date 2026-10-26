@@ -1,10 +1,12 @@
 /**
  * @license
  * Copyright 2026 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
 import React from 'react';
+import { withKittyGraphics } from './ui/utils/kittyGraphicsOutput.js';
 import { render, setStringWidthFunction } from 'ink';
 import { basename } from 'node:path';
 import { AppContainer } from './ui/AppContainer.js';
@@ -149,7 +151,7 @@ export async function startInteractiveUI(
       <AppWrapper />
     ),
     {
-      stdout: inkStdout,
+      stdout: withKittyGraphics(inkStdout),
       stderr: inkStderr,
       stdin: process.stdin,
       exitOnCtrlC: false,

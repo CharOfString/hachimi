@@ -7,14 +7,16 @@
 import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { logoCommand } from './logoCommand.js';
 import { createMockCommandContext } from '../../test-utils/mockCommandContext.js';
+import { terminalCapabilityManager } from '../utils/terminalCapabilityManager.js';
 import { SettingScope } from '../../config/settings.js';
 
 let directory: string | undefined;
 
 afterEach(async () => {
+  vi.restoreAllMocks();
   if (directory) {
     await rm(directory, { recursive: true, force: true });
     directory = undefined;
@@ -55,6 +57,38 @@ describe('/logo', () => {
       { mode: 'ascii', text: ' /\\\n(oo)' },
     );
   });
+
+  it.each([true, false])(
+    'accepts explicit Kitty mode without placeholders when graphics probe=%s',
+    async (graphics) => {
+      directory = await mkdtemp(path.join(os.tmpdir(), 'hachimi-logo-test-'));
+      const filename = path.join(directory, 'logo.png');
+      await writeFile(
+        filename,
+        Buffer.from(
+          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aN1sAAAAASUVORK5CYII=',
+          'base64',
+        ),
+      );
+      vi.spyOn(
+        terminalCapabilityManager,
+        'supportsKittyGraphics',
+      ).mockReturnValue(graphics);
+      vi.spyOn(
+        terminalCapabilityManager,
+        'supportsKittyUnicodePlaceholders',
+      ).mockReturnValue(false);
+      const context = createMockCommandContext();
+      expect(
+        await logoCommand.action!(context, `kitty ${filename}`),
+      ).toMatchObject({ messageType: 'info' });
+      expect(context.services.settings.setValue).toHaveBeenCalledWith(
+        SettingScope.User,
+        'ui.logo',
+        { mode: 'kitty', image: filename },
+      );
+    },
+  );
 
   it('does not overwrite the logo if the image is invalid', async () => {
     directory = await mkdtemp(path.join(os.tmpdir(), 'hachimi-logo-test-'));

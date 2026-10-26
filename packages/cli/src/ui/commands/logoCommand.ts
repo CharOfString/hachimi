@@ -5,6 +5,7 @@
  */
 
 import path from 'node:path';
+import { terminalCapabilityManager } from '../utils/terminalCapabilityManager.js';
 import os from 'node:os';
 import { SettingScope } from '../../config/settings.js';
 import { CommandKind, type SlashCommand } from './types.js';
@@ -29,7 +30,20 @@ export const logoCommand: SlashCommand = {
     const match = args.trim().match(/^(off|ascii|kitty)(?:\s+([\s\S]+))?$/);
 
     if (!match) {
-      return { type: 'message', messageType: 'info', content: USAGE };
+      const terminal = terminalCapabilityManager.getTerminalName() ?? 'unknown';
+      const graphics = terminalCapabilityManager.supportsKittyGraphics()
+        ? 'supported'
+        : 'not confirmed';
+      const placeholders =
+        terminalCapabilityManager.supportsKittyUnicodePlaceholders()
+          ? 'supported'
+          : 'not confirmed';
+
+      return {
+        type: 'message',
+        messageType: 'info',
+        content: `${USAGE}\n\nTerminal: ${terminal}\nKitty graphics: ${graphics}\nUnicode image placeholders: ${placeholders}`,
+      };
     }
 
     const [, mode, argument] = match;
@@ -63,6 +77,7 @@ export const logoCommand: SlashCommand = {
           });
         } else {
           validatePngLogo(data);
+
           context.services.settings.setValue(SettingScope.User, 'ui.logo', {
             mode,
             image: filename,
@@ -76,7 +91,7 @@ export const logoCommand: SlashCommand = {
         content:
           mode === 'off'
             ? 'Logo hidden.'
-            : `Logo set to ${mode} mode.${mode === 'kitty' ? ' Requires Kitty Unicode placeholder support; tmux needs allow-passthrough.' : ''}`,
+            : `Logo set to ${mode} mode.${mode === 'kitty' ? ' Uses Kitty graphics; tmux needs allow-passthrough.' : ''}`,
       };
     } catch (error) {
       return {

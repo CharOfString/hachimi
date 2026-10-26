@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useLayoutEffect, useMemo } from 'react';
-import { Box, Text, useStdout } from 'ink';
+import { useLayoutEffect, useMemo, useRef } from 'react';
+import { Box, Text, useStdout, type DOMElement } from 'ink';
 import {
   openSync,
   fstatSync,
@@ -22,6 +22,11 @@ import {
   validateAsciiLogo,
   validatePngLogo,
 } from '../utils/logo.js';
+import { terminalCapabilityManager } from '../utils/terminalCapabilityManager.js';
+import {
+  registerKittyPlacement,
+  removeKittyPlacements,
+} from '../utils/kittyGraphicsOutput.js';
 import { theme } from '../semantic-colors.js';
 
 const IMAGE_ID = randomInt(1, 0xffffff);
@@ -36,6 +41,9 @@ interface CustomLogoProps {
 
 export function CustomLogo({ mode, text, image, width }: CustomLogoProps) {
   const { stdout } = useStdout();
+  const imageBox = useRef<DOMElement>(null);
+  const placeholders =
+    terminalCapabilityManager.supportsKittyUnicodePlaceholders();
   const columns = Math.max(1, Math.min(24, width));
   const asset = useMemo(() => {
     if (mode !== 'kitty' || !image || !stdout.isTTY) {
@@ -64,15 +72,47 @@ export function CustomLogo({ mode, text, image, width }: CustomLogoProps) {
     }
   }, [mode, image, stdout.isTTY]);
 
+  const marker = useMemo(() => {
+    if (!asset?.data || placeholders) {
+      return undefined;
+    }
+
+    return registerKittyPlacement(asset.data, IMAGE_ID, columns);
+  }, [asset, placeholders, columns]);
+
   useLayoutEffect(() => {
     if (asset?.data) {
-      writeToStdout(kittyUpload(asset.data, IMAGE_ID, columns));
+      if (placeholders) {
+        writeToStdout(kittyUpload(asset.data, IMAGE_ID, columns));
+      }
+
       uploaded = true;
     } else if (uploaded) {
+      removeKittyPlacements(IMAGE_ID);
       writeToStdout(kittyCommand(`a=d,d=I,i=${IMAGE_ID},q=2`));
       uploaded = false;
     }
-  }, [asset, columns]);
+  }, [asset, columns, placeholders]);
+
+  useLayoutEffect(() => {
+    if (!marker) {
+      return;
+    }
+
+    let ancestor: DOMElement | undefined = imageBox.current ?? undefined;
+
+    while (ancestor) {
+      if (ancestor.internal_static) {
+        return;
+      }
+
+      ancestor = ancestor.parentNode;
+    }
+
+    return () => {
+      writeToStdout(kittyCommand(`a=d,d=i,i=${IMAGE_ID},q=2`));
+    };
+  }, [marker]);
 
   if (mode === 'ascii' && text) {
     try {
@@ -99,8 +139,8 @@ export function CustomLogo({ mode, text, image, width }: CustomLogoProps) {
   }
 
   return (
-    <Box width={columns} height={6} marginBottom={1}>
-      <Text>{kittyPlaceholder(IMAGE_ID, columns)}</Text>
+    <Box ref={imageBox} width={columns} height={6} marginBottom={1}>
+      <Text>{placeholders ? kittyPlaceholder(IMAGE_ID, columns) : marker}</Text>
     </Box>
   );
 }
