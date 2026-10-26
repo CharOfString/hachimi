@@ -1,7 +1,6 @@
 # Hachimi CLI
-
-Gemini CLI fork with a separate npm package (`hachimi-cli`) and command
-(`hachimi`), so it can be installed alongside the original `gemini`.
+Gemini CLI fork with custom API provider support (account system ported from QWen Code).
+![](./docs/screenshots/account_sys.png)
 
 Build and install from this checkout (Node.js 20 or newer):
 
