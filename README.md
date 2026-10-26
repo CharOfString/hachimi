@@ -70,40 +70,14 @@ for recommended system specifications and a detailed installation guide.
 
 ### Quick Install
 
-#### Run instantly with npx
+#### Run instantly
 
 ```bash
-# Using npx (no installation required)
-npx @google/gemini-cli
+npm run start
 ```
-
-#### Install globally with npm
-
+#### Install to local
 ```bash
-npm install -g @google/gemini-cli
-```
-
-#### Install globally with Homebrew (macOS/Linux)
-
-```bash
-brew install gemini-cli
-```
-
-#### Install globally with MacPorts (macOS)
-
-```bash
-sudo port install gemini-cli
-```
-
-#### Install with Anaconda (for restricted environments)
-
-```bash
-# Create and activate a new environment
-conda create -y -n gemini_env -c conda-forge nodejs
-conda activate gemini_env
-
-# Install Gemini CLI globally via npm (inside the environment)
-npm install -g @google/gemini-cli
+npm run build:install
 ```
 
 ## Release Channels
