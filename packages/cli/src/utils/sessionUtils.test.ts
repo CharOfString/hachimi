@@ -1264,6 +1264,40 @@ describe('convertSessionToHistoryFormats', () => {
     });
   });
 
+  it('should merge per-delta thoughts from older sessions', () => {
+    const timestamp = new Date().toISOString();
+    const messages: MessageRecord[] = [
+      {
+        id: '1',
+        timestamp,
+        type: 'gemini',
+        content: 'Answer',
+        thoughts: [
+          { subject: '', description: 'The', timestamp },
+          { subject: '', description: 'user', timestamp },
+          { subject: '', description: '', timestamp },
+          { subject: '', description: 'asks', timestamp },
+          { subject: 'Plan', description: 'Read', timestamp },
+          { subject: '', description: 'code', timestamp },
+        ],
+      },
+    ];
+
+    const result = convertSessionToHistoryFormats(messages);
+
+    expect(result.uiHistory).toEqual([
+      {
+        type: 'thinking',
+        thought: { subject: '', description: 'The user asks' },
+      },
+      {
+        type: 'thinking',
+        thought: { subject: 'Plan', description: 'Read code' },
+      },
+      { type: 'gemini', text: 'Answer' },
+    ]);
+  });
+
   it('should filter out <session_context> from UI history', () => {
     const messages: MessageRecord[] = [
       {

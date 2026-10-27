@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -668,6 +669,30 @@ export class SessionSelector {
 }
 
 /**
+ * Folds subject-less thoughts into the thought before them. Older sessions
+ * recorded every streamed reasoning delta as its own (trimmed) thought, and
+ * replaying thousands of thinking items makes resuming them hang.
+ */
+function mergeThoughts(
+  thoughts: ReadonlyArray<{ subject: string; description: string }>,
+): Array<{ subject: string; description: string }> {
+  const merged: Array<{ subject: string; description: string }> = [];
+  for (const { subject, description } of thoughts) {
+    const last = merged.at(-1);
+    if (last && !subject) {
+      if (description) {
+        last.description = last.description
+          ? `${last.description} ${description}`
+          : description;
+      }
+    } else {
+      merged.push({ subject, description });
+    }
+  }
+  return merged;
+}
+
+/**
  * Converts session/conversation data into UI history format.
  */
 export function convertSessionToHistoryFormats(
@@ -680,14 +705,8 @@ export function convertSessionToHistoryFormats(
   for (const msg of messages) {
     // Add thoughts if present
     if (msg.type === 'gemini' && msg.thoughts && msg.thoughts.length > 0) {
-      for (const thought of msg.thoughts) {
-        uiHistory.push({
-          type: 'thinking',
-          thought: {
-            subject: thought.subject,
-            description: thought.description,
-          },
-        });
+      for (const thought of mergeThoughts(msg.thoughts)) {
+        uiHistory.push({ type: 'thinking', thought });
       }
     }
 

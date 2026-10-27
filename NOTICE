@@ -54,6 +54,8 @@ Modifications by CharOfString <root@charofstring.cc>:
   effort ladder onto provider reasoning_effort and Gemini thinking settings.
 - Merged streamed thought deltas into readable thinking blocks and detected
   provider reasoning sent as a `reasoning` field or a leading <think> block.
+- Recorded streamed reasoning as whole thoughts instead of one per delta, and
+  merged the per-delta thoughts of older sessions when resuming them.
 - Updated tests, documentation, source formatting and distribution notices.
 
 Product and provider names identify compatibility or the origin of the work.

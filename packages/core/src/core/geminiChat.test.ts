@@ -1559,6 +1559,57 @@ describe('GeminiChat', () => {
       recordMessageTokensSpy.mockRestore();
     });
 
+    it('should record streamed thought deltas as whole thoughts', async () => {
+      const recordThoughtSpy = vi.spyOn(
+        chat.getChatRecordingService(),
+        'recordThought',
+      );
+      const chunk = (part: Part) =>
+        ({
+          candidates: [{ content: { role: 'model', parts: [part] } }],
+        }) as unknown as GenerateContentResponse;
+
+      vi.mocked(mockContentGenerator.generateContentStream).mockImplementation(
+        async () =>
+          (async function* () {
+            yield chunk({ thought: true, text: 'The user' });
+            yield chunk({ thought: true, text: ' wants a' });
+            yield chunk({ thought: true, text: ' fix.' });
+            yield chunk({ thought: true, text: '**Plan** Read the code.' });
+            yield chunk({ thought: true, text: ' Then edit it.' });
+            yield chunk({ text: 'Done.' });
+            yield chunk({ thought: true, text: 'Afterthought' });
+            yield {
+              candidates: [
+                {
+                  content: { role: 'model', parts: [{ text: '' }] },
+                  finishReason: 'STOP',
+                },
+              ],
+            } as unknown as GenerateContentResponse;
+          })(),
+      );
+
+      const stream = await chat.sendMessageStream(
+        { model: 'gemini-2.0-flash' },
+        'test prompt',
+        'prompt-id-thought-deltas',
+        new AbortController().signal,
+        LlmRole.MAIN,
+      );
+      for await (const _ of stream) {
+        // consume stream completely
+      }
+
+      expect(recordThoughtSpy.mock.calls.map(([thought]) => thought)).toEqual([
+        { subject: '', description: 'The user wants a fix.' },
+        { subject: 'Plan', description: 'Read the code. Then edit it.' },
+        { subject: '', description: 'Afterthought' },
+      ]);
+
+      recordThoughtSpy.mockRestore();
+    });
+
     it('should sync the chat recording service on history rollback when InvalidStreamError is thrown', async () => {
       const initialHistoryLength = chat.agentHistory.length;
       const updateSpy = vi.spyOn(

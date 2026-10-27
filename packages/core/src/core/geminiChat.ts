@@ -1494,8 +1494,10 @@ export class GeminiChat {
     let finishReason: FinishReason | undefined;
 
     // Buffers to prevent failed stream attempts from polluting telemetry and logs
-    const bufferedThoughts: Array<{ subject: string; description: string }> =
-      [];
+    // Raw text per thought: providers stream reasoning in small deltas, which
+    // are merged so each thought is recorded once rather than once per delta.
+    const bufferedThoughts: string[] = [];
+    let isThoughtOpen = false;
     let bufferedUsageMetadata:
       | GenerateContentResponse['usageMetadata']
       | undefined = undefined;
@@ -1555,10 +1557,19 @@ export class GeminiChat {
           if (content.parts.some((part) => part.thought)) {
             // Record thoughts
             hasThoughts = true;
-            const thought = this.extractThoughtFromContent(content);
-            if (thought) {
-              bufferedThoughts.push(thought);
+            const text = content.parts[0].text;
+            if (text) {
+              // A `**Subject**` opens a new Gemini thought summary; anything
+              // else continues the thought streamed by the previous chunk.
+              if (isThoughtOpen && !text.trimStart().startsWith('**')) {
+                bufferedThoughts[bufferedThoughts.length - 1] += text;
+              } else {
+                bufferedThoughts.push(text);
+              }
+              isThoughtOpen = true;
             }
+          } else {
+            isThoughtOpen = false;
           }
           if (content.parts.some((part) => part.functionCall)) {
             hasToolCall = true;
@@ -1762,8 +1773,8 @@ export class GeminiChat {
     }
 
     // Flush buffered thoughts from the successful attempt
-    for (const thought of bufferedThoughts) {
-      this.chatRecordingService.recordThought(thought);
+    for (const text of bufferedThoughts) {
+      this.chatRecordingService.recordThought(this.extractThought(text));
     }
 
     // Flush buffered usage metadata and token counts from the successful attempt
@@ -1848,29 +1859,19 @@ export class GeminiChat {
   /**
    * Extracts thought from thought content.
    */
-  private extractThoughtFromContent(
-    content: Content,
-  ): { subject: string; description: string } | undefined {
-    if (!content.parts || content.parts.length === 0) {
-      return undefined;
-    }
+  private extractThought(rawText: string): {
+    subject: string;
+    description: string;
+  } {
+    // Extract subject and description using the same logic as turn.ts
+    const subjectStringMatches = rawText.match(/\*\*(.*?)\*\*/s);
+    const subject = subjectStringMatches ? subjectStringMatches[1].trim() : '';
+    const description = rawText.replace(/\*\*(.*?)\*\*/s, '').trim();
 
-    const thoughtPart = content.parts[0];
-    if (thoughtPart.text) {
-      // Extract subject and description using the same logic as turn.ts
-      const rawText = thoughtPart.text;
-      const subjectStringMatches = rawText.match(/\*\*(.*?)\*\*/s);
-      const subject = subjectStringMatches
-        ? subjectStringMatches[1].trim()
-        : '';
-      const description = rawText.replace(/\*\*(.*?)\*\*/s, '').trim();
-
-      return {
-        subject,
-        description,
-      };
-    }
-    return undefined;
+    return {
+      subject,
+      description,
+    };
   }
 }
 
