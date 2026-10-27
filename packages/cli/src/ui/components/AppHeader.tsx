@@ -17,6 +17,10 @@ import { useTips } from '../hooks/useTips.js';
 import { theme } from '../semantic-colors.js';
 import { CustomLogo } from './CustomLogo.js';
 import { CliSpinner } from './CliSpinner.js';
+import { getCachedStringWidth } from '../utils/textUtils.js';
+
+const PRODUCT_NAME = 'Hachimi CLI';
+const UPDATING_LABEL = 'Updating';
 
 interface VersionHeaderProps {
   version: string;
@@ -31,6 +35,7 @@ export const VersionHeader = ({
   const { settings } = useSettingsStore();
   const config = useConfig();
   const { terminalWidth, updateInfo } = useUIState();
+  const isUpdating = updateInfo?.isUpdating;
 
   return (
     <Box flexDirection="column" paddingLeft={1}>
@@ -39,34 +44,41 @@ export const VersionHeader = ({
         text={settings.merged.ui.logo?.text}
         image={settings.merged.ui.logo?.image}
         width={Math.max(1, terminalWidth - 2)}
-      />
-      <Box flexDirection="column">
-        <Box>
-          <Text bold color={theme.text.primary}>
-            Hachimi CLI
-          </Text>
-          <Text color={theme.text.secondary}> v{version}</Text>
-          {updateInfo?.isUpdating && (
-            <Box marginLeft={2}>
-              <Text color={theme.text.secondary}>
-                <CliSpinner /> Updating
-              </Text>
-            </Box>
-          )}
-        </Box>
-
-        {showDetails && (
+        besideMinWidth={getCachedStringWidth(
+          `${PRODUCT_NAME} v${version}` +
+            (isUpdating ? `  ⠋ ${UPDATING_LABEL}` : ''),
+        )}
+      >
+        {(beside) => (
           <>
-            {/* Line 2: Blank */}
-            <Box height={1} />
+            <Box>
+              <Text bold color={theme.text.primary}>
+                {PRODUCT_NAME}
+              </Text>
+              <Text color={theme.text.secondary}> v{version}</Text>
+              {isUpdating && (
+                <Box marginLeft={2}>
+                  <Text color={theme.text.secondary}>
+                    <CliSpinner /> {UPDATING_LABEL}
+                  </Text>
+                </Box>
+              )}
+            </Box>
 
-            {/* Lines 3 & 4: User Identity info (Email /auth and Plan /upgrade) */}
-            {settings.merged.ui.showUserIdentity !== false && (
-              <UserIdentity config={config} />
+            {showDetails && (
+              <>
+                {/* Line 2: Blank */}
+                {!beside && <Box height={1} />}
+
+                {/* Lines 3 & 4: User Identity info (Email /auth and Plan /upgrade) */}
+                {settings.merged.ui.showUserIdentity !== false && (
+                  <UserIdentity config={config} />
+                )}
+              </>
             )}
           </>
         )}
-      </Box>
+      </CustomLogo>
     </Box>
   );
 };

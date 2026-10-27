@@ -6,6 +6,7 @@
 
 import { describe, expect, it, afterEach, vi } from 'vitest';
 import {
+  kittyLogoColumns,
   kittyPlaceholder,
   kittyUpload,
   kittyCommand,
@@ -28,6 +29,13 @@ describe('logo data', () => {
       expect(() => validateAsciiLogo(text)).toThrow();
     },
   );
+
+  it('sizes kitty logos to the image aspect ratio', () => {
+    const image = { width: 1318, height: 1193 };
+    expect(kittyLogoColumns(image, { width: 9, height: 20 })).toBe(15);
+    expect(kittyLogoColumns(image)).toBe(14);
+    expect(kittyLogoColumns({ width: 1, height: 1000 })).toBe(1);
+  });
 
   it('rejects non-PNG input and unreasonable image dimensions', () => {
     expect(() => validatePngLogo(Buffer.from('not png'))).toThrow('PNG');

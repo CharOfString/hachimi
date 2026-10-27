@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useLayoutEffect, useMemo, useRef } from 'react';
+import { useLayoutEffect, useMemo, useRef, type ReactNode } from 'react';
 import { Box, Text, useStdout, type DOMElement } from 'ink';
 import {
   openSync,
@@ -16,7 +16,9 @@ import {
 import { randomInt } from 'node:crypto';
 import { writeToStdout } from '@google/gemini-cli-core';
 import {
+  KITTY_LOGO_ROWS,
   kittyCommand,
+  kittyLogoColumns,
   kittyPlaceholder,
   kittyUpload,
   validateAsciiLogo,
@@ -28,8 +30,10 @@ import {
   removeKittyPlacements,
 } from '../utils/kittyGraphicsOutput.js';
 import { theme } from '../semantic-colors.js';
+import { getCachedStringWidth } from '../utils/textUtils.js';
 
 const IMAGE_ID = randomInt(1, 0xffffff);
+const BESIDE_GAP = 2;
 let uploaded = false;
 
 interface CustomLogoProps {
@@ -37,14 +41,22 @@ interface CustomLogoProps {
   text?: string;
   image?: string;
   width: number;
+  children?: (beside: boolean) => ReactNode;
+  besideMinWidth?: number;
 }
 
-export function CustomLogo({ mode, text, image, width }: CustomLogoProps) {
+export function CustomLogo({
+  mode,
+  text,
+  image,
+  width,
+  children,
+  besideMinWidth,
+}: CustomLogoProps) {
   const { stdout } = useStdout();
   const imageBox = useRef<DOMElement>(null);
   const placeholders =
     terminalCapabilityManager.supportsKittyUnicodePlaceholders();
-  const columns = Math.max(1, Math.min(24, width));
   const asset = useMemo(() => {
     if (mode !== 'kitty' || !image || !stdout.isTTY) {
       return undefined;
@@ -61,9 +73,9 @@ export function CustomLogo({ mode, text, image, width }: CustomLogoProps) {
         }
 
         const data = readFileSync(file);
-        validatePngLogo(data);
+        const size = validatePngLogo(data);
 
-        return { data };
+        return { data, size };
       } finally {
         closeSync(file);
       }
@@ -71,6 +83,16 @@ export function CustomLogo({ mode, text, image, width }: CustomLogoProps) {
       return { error: error instanceof Error ? error.message : String(error) };
     }
   }, [mode, image, stdout.isTTY]);
+  const columns = Math.max(
+    1,
+    Math.min(
+      24,
+      width,
+      asset?.size
+        ? kittyLogoColumns(asset.size, terminalCapabilityManager.getCellSize())
+        : 24,
+    ),
+  );
 
   const marker = useMemo(() => {
     if (!asset?.data || placeholders) {
@@ -114,33 +136,62 @@ export function CustomLogo({ mode, text, image, width }: CustomLogoProps) {
     };
   }, [marker]);
 
-  if (mode === 'ascii' && text) {
-    try {
-      const safeText = validateAsciiLogo(text);
+  const below = children?.(false);
+  const layout = (logo: ReactNode, logoWidth: number) => {
+    const besideWidth = width - logoWidth - BESIDE_GAP;
 
-      return (
-        <Box marginBottom={1} width={width}>
-          <Text wrap="truncate-end" color={theme.text.primary}>
-            {safeText}
-          </Text>
+    return besideMinWidth !== undefined && besideMinWidth <= besideWidth ? (
+      <Box alignItems="flex-end">
+        <Box width={logoWidth} flexShrink={0}>
+          {logo}
         </Box>
-      );
+        <Box flexDirection="column" marginLeft={BESIDE_GAP} width={besideWidth}>
+          {children?.(true)}
+        </Box>
+      </Box>
+    ) : (
+      <>
+        <Box marginBottom={1} width={Math.min(logoWidth, width)}>
+          {logo}
+        </Box>
+        {below}
+      </>
+    );
+  };
+
+  if (mode === 'ascii' && text) {
+    let safeText: string;
+    try {
+      safeText = validateAsciiLogo(text);
     } catch {
-      return null;
+      return below;
     }
+
+    return layout(
+      <Text wrap="truncate-end" color={theme.text.primary}>
+        {safeText}
+      </Text>,
+      Math.max(...safeText.split('\n').map(getCachedStringWidth)),
+    );
   }
 
   if (mode !== 'kitty' || !asset) {
-    return null;
+    return below;
   }
 
   if (asset.error) {
-    return <Text color={theme.status.warning}>Logo: {asset.error}</Text>;
+    return (
+      <>
+        <Text color={theme.status.warning}>Logo: {asset.error}</Text>
+        {below}
+      </>
+    );
   }
 
-  return (
-    <Box ref={imageBox} width={columns} height={6} marginBottom={1}>
+  return layout(
+    <Box ref={imageBox} height={KITTY_LOGO_ROWS}>
       <Text>{placeholders ? kittyPlaceholder(IMAGE_ID, columns) : marker}</Text>
-    </Box>
+    </Box>,
+    columns,
   );
 }

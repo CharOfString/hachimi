@@ -76,7 +76,25 @@ export function validateAsciiLogo(text: string): string {
   return normalized;
 }
 
-export function validatePngLogo(data: Buffer): void {
+export const KITTY_LOGO_ROWS = 6;
+
+const DEFAULT_CELL_RATIO = 2;
+
+export function kittyLogoColumns(
+  image: { width: number; height: number },
+  cell?: { width: number; height: number },
+): number {
+  const cellRatio = cell ? cell.height / cell.width : DEFAULT_CELL_RATIO;
+  return Math.max(
+    1,
+    Math.ceil((KITTY_LOGO_ROWS * cellRatio * image.width) / image.height),
+  );
+}
+
+export function validatePngLogo(data: Buffer): {
+  width: number;
+  height: number;
+} {
   if (
     data.length < 33 ||
     !data
@@ -93,6 +111,8 @@ export function validatePngLogo(data: Buffer): void {
   if (!width || !height || width * height > 16_000_000) {
     throw new Error('PNG logo must contain between 1 and 16 million pixels.');
   }
+
+  return { width, height };
 }
 
 export function kittyCommand(payload: string): string {
@@ -112,7 +132,7 @@ export function kittyUpload(
     const more = offset + 4096 < encoded.length ? 1 : 0;
     const parameters =
       offset === 0
-        ? `a=T,f=100,t=d,${placeholders ? 'U=1' : 'C=1,p=1'},q=2,i=${id},c=${columns},r=6,m=${more}`
+        ? `a=T,f=100,t=d,${placeholders ? 'U=1' : 'C=1,p=1'},q=2,i=${id},c=${columns},r=${KITTY_LOGO_ROWS},m=${more}`
         : `m=${more},q=2`;
     chunks.push(
       kittyCommand(`${parameters};${encoded.slice(offset, offset + 4096)}`),
@@ -131,7 +151,7 @@ const DIACRITICS = [
 export function kittyPlaceholder(id: number, columns: number): string {
   const color = `\x1b[38;2;${(id >> 16) & 255};${(id >> 8) & 255};${id & 255}m`;
 
-  return Array.from({ length: 6 }, (_, row) => {
+  return Array.from({ length: KITTY_LOGO_ROWS }, (_, row) => {
     const cells = Array.from({ length: columns }, (_, column) =>
       String.fromCodePoint(0x10eeee, DIACRITICS[row], DIACRITICS[column]),
     ).join('');

@@ -52,6 +52,7 @@ export class TerminalCapabilityManager {
   private static readonly TERMINAL_NAME_QUERY = '\x1b[>q';
   private static readonly DEVICE_ATTRIBUTES_QUERY = '\x1b[c';
   private static readonly MODIFY_OTHER_KEYS_QUERY = '\x1b[>4;?m';
+  private static readonly CELL_SIZE_QUERY = '\x1b[16t';
   private static readonly HIDDEN_MODE = '\x1b[8m';
   private static readonly CLEAR_LINE_AND_RETURN = '\x1b[2K\r';
   private static readonly RESET_ATTRIBUTES = '\x1b[0m';
@@ -82,6 +83,8 @@ export class TerminalCapabilityManager {
   // modifyOtherKeys response: CSI > 4 ; level m
   // eslint-disable-next-line no-control-regex
   private static readonly MODIFY_OTHER_KEYS_REGEX = /\x1b\[>4;(\d+)m/;
+  // eslint-disable-next-line no-control-regex
+  private static readonly CELL_SIZE_REGEX = /\x1b\[6;(\d+);(\d+)t/;
 
   private detectionComplete = false;
   private terminalBackgroundColor: TerminalBackgroundColor;
@@ -91,6 +94,7 @@ export class TerminalCapabilityManager {
   private kittyEnabled = false;
   private modifyOtherKeysSupported = false;
   private terminalName: string | undefined;
+  private cellSize: { width: number; height: number } | undefined;
 
   private constructor() {}
 
@@ -233,6 +237,15 @@ export class TerminalCapabilityManager {
           }
         }
 
+        if (!this.cellSize) {
+          const match = buffer.match(TerminalCapabilityManager.CELL_SIZE_REGEX);
+          const height = Number(match?.[1]);
+          const width = Number(match?.[2]);
+          if (height > 0 && width > 0) {
+            this.cellSize = { width, height };
+          }
+        }
+
         // We use the Primary Device Attributes response as a sentinel to know
         // that the terminal has processed all our queries. Since we send it
         // last, receiving it means we can stop waiting.
@@ -263,6 +276,7 @@ export class TerminalCapabilityManager {
             terminalPassthrough(TerminalCapabilityManager.TERMINAL_NAME_QUERY) +
             TerminalCapabilityManager.MODIFY_OTHER_KEYS_QUERY +
             kittyGraphicsQueries() +
+            terminalPassthrough(TerminalCapabilityManager.CELL_SIZE_QUERY) +
             terminalPassthrough(
               TerminalCapabilityManager.DEVICE_ATTRIBUTES_QUERY,
             ) +
@@ -299,6 +313,10 @@ export class TerminalCapabilityManager {
 
   getTerminalName(): string | undefined {
     return this.terminalName;
+  }
+
+  getCellSize(): { width: number; height: number } | undefined {
+    return this.cellSize;
   }
 
   supportsKittyGraphics(): boolean {

@@ -56,6 +56,8 @@ Modifications by CharOfString <root@charofstring.cc>:
   provider reasoning sent as a `reasoning` field or a leading <think> block.
 - Recorded streamed reasoning as whole thoughts instead of one per delta, and
   merged the per-delta thoughts of older sessions when resuming them.
+- Placed the version and sign-in details beside a custom logo when the terminal
+  is wide enough.
 - Updated tests, documentation, source formatting and distribution notices.
 
 Product and provider names identify compatibility or the origin of the work.

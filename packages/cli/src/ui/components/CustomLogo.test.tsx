@@ -8,7 +8,7 @@ import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { Static } from 'ink';
+import { Static, Text } from 'ink';
 import { writeToStdout } from '@google/gemini-cli-core';
 import { render } from '../../test-utils/render.js';
 import { terminalCapabilityManager } from '../utils/terminalCapabilityManager.js';
@@ -40,6 +40,53 @@ describe('CustomLogo', () => {
     result.rerender(<CustomLogo mode="off" width={80} />);
     await result.waitUntilReady();
     expect(result.lastFrame({ allowEmpty: true })).not.toContain('(oo)');
+    result.unmount();
+  });
+
+  it('places children beside the logo only when they fit', async () => {
+    const logo = (width: number) => (
+      <CustomLogo
+        mode="ascii"
+        text={'/\\_/\\\n(o.o)\n(> <)\n /|\\'}
+        width={width}
+        besideMinWidth={4}
+      >
+        {(beside) => (
+          <>
+            <Text>{beside ? 'Name' : 'Name below'}</Text>
+            <Text wrap="truncate-end">Authenticated</Text>
+          </>
+        )}
+      </CustomLogo>
+    );
+    const result = await render(logo(11));
+    expect(result.lastFrame().trimEnd().split('\n')).toEqual([
+      '/\\_/\\',
+      '(o.o)',
+      '(> <)  Name',
+      ' /|\\   Aut…',
+    ]);
+    result.rerender(logo(10));
+    await result.waitUntilReady();
+    expect(result.lastFrame().trimEnd().split('\n')).toEqual([
+      '/\\_/\\',
+      '(o.o)',
+      '(> <)',
+      ' /|\\',
+      '',
+      'Name below',
+      'Authenticated',
+    ]);
+    result.unmount();
+  });
+
+  it('shows the children without a logo', async () => {
+    const result = await render(
+      <CustomLogo width={80} besideMinWidth={4}>
+        {() => <Text>Name</Text>}
+      </CustomLogo>,
+    );
+    expect(result.lastFrame().trim()).toBe('Name');
     result.unmount();
   });
 

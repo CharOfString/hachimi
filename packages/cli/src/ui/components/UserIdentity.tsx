@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2026 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -57,7 +58,9 @@ export const UserIdentity: React.FC<UserIdentityProps> = ({ config }) => {
             `Authenticated with ${authType}`
           )}
         </Text>
-        <Text color={theme.text.secondary}> /auth</Text>
+        <Box flexShrink={0}>
+          <Text color={theme.text.secondary}> /auth</Text>
+        </Box>
       </Box>
 
       {/* Tier Name /upgrade */}
@@ -66,7 +69,11 @@ export const UserIdentity: React.FC<UserIdentityProps> = ({ config }) => {
           <Text color={theme.text.primary} wrap="truncate-end">
             <Text bold>Plan:</Text> {tierName}
           </Text>
-          {!isUltra && <Text color={theme.text.secondary}> /upgrade</Text>}
+          {!isUltra && (
+            <Box flexShrink={0}>
+              <Text color={theme.text.secondary}> /upgrade</Text>
+            </Box>
+          )}
         </Box>
       )}
     </Box>

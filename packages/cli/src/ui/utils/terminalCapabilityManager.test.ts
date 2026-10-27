@@ -201,6 +201,17 @@ describe('TerminalCapabilityManager', () => {
     expect(manager.getTerminalName()).toBe('WezTerm 20240203');
   });
 
+  it('should detect the cell size in pixels', async () => {
+    const manager = TerminalCapabilityManager.getInstance();
+    const promise = manager.detectCapabilities();
+
+    stdin.emit('data', Buffer.from('\x1b[6;20;9t'));
+    stdin.emit('data', Buffer.from('\x1b[?62c'));
+
+    await promise;
+    expect(manager.getCellSize()).toEqual({ width: 9, height: 20 });
+  });
+
   it('should complete early if sentinel (DA1) is found', async () => {
     const manager = TerminalCapabilityManager.getInstance();
     const promise = manager.detectCapabilities();
