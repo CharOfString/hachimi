@@ -8,6 +8,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { FinishReason, type GenerateContentParameters } from '@google/genai';
 import {
   ProviderContentGenerator,
+  ThinkTagSplitter,
   openAIMessages,
   readSSE,
 } from './contentGenerator.js';
@@ -353,5 +354,106 @@ describe('provider protocol adapter', () => {
       'max',
       undefined,
     ]);
+  });
+
+  it('shows the reasoning field and <think> blocks as thoughts without replaying them', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        sse([
+          { choices: [{ delta: { reasoning: 'Plan ' } }] },
+          { choices: [{ delta: { content: '<thi' } }] },
+          { choices: [{ delta: { content: 'nk>\nCheck the ' } }] },
+          { choices: [{ delta: { content: 'input</th' } }] },
+          { choices: [{ delta: { content: 'ink>\n\n' } }] },
+          {
+            choices: [
+              {
+                delta: {
+                  content: 'Done',
+                  tool_calls: [
+                    {
+                      index: 0,
+                      id: 'call1',
+                      function: { name: 'read_file', arguments: '{}' },
+                    },
+                  ],
+                },
+                finish_reason: 'tool_calls',
+              },
+            ],
+          },
+          '[DONE]',
+        ]),
+      ),
+    );
+    const result = await new ProviderContentGenerator(
+      account,
+      'key',
+      () => 'chat',
+    ).generateContent({ model: 'chat', contents: 'hi' });
+    const parts = result.candidates?.[0]?.content?.parts ?? [];
+
+    expect(
+      parts
+        .filter((p) => p.thought)
+        .map((p) => p.text)
+        .join(''),
+    ).toBe('Plan Check the input');
+    expect(
+      parts
+        .filter((p) => p.text !== undefined && !p.thought)
+        .map((p) => p.text)
+        .join(''),
+    ).toBe('Done');
+    expect(parts.find((p) => p.functionCall)?.thoughtSignature).toBeUndefined();
+  });
+});
+
+describe('ThinkTagSplitter', () => {
+  const run = (chunks: string[]) => {
+    const splitter = new ThinkTagSplitter();
+    const parts = [
+      ...chunks.flatMap((chunk) => splitter.push(chunk)),
+      ...splitter.flush(),
+    ];
+    const join = (thought: boolean) =>
+      parts
+        .filter((p) => !!p.thought === thought)
+        .map((p) => p.text)
+        .join('');
+    return { thought: join(true), answer: join(false) };
+  };
+
+  it('passes plain answers through unchanged', () => {
+    expect(run(['Hello', ' world'])).toEqual({
+      thought: '',
+      answer: 'Hello world',
+    });
+  });
+
+  it('keeps a tag that is not at the start of the answer', () => {
+    expect(run(['Use ', '<think>', ' tags'])).toEqual({
+      thought: '',
+      answer: 'Use <think> tags',
+    });
+  });
+
+  it('splits a leading block, including tags across chunks', () => {
+    expect(run(['  <think>', 'a</', 'think', '>', '\n', 'b'])).toEqual({
+      thought: 'a',
+      answer: 'b',
+    });
+  });
+
+  it('treats an unterminated block as thought', () => {
+    expect(run(['<think>still going'])).toEqual({
+      thought: 'still going',
+      answer: '',
+    });
+  });
+
+  it('releases a held partial open tag at the end', () => {
+    expect(run(['<th'])).toEqual({ thought: '', answer: '<th' });
   });
 });

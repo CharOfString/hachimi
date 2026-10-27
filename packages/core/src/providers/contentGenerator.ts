@@ -38,6 +38,7 @@ const openAIChunkSchema = z.object({
           .object({
             content: z.string().nullish(),
             reasoning_content: z.string().nullish(),
+            reasoning: z.string().nullish(),
             tool_calls: z
               .array(
                 z.object({
@@ -394,6 +395,92 @@ function response(
   return result;
 }
 
+const THINK_OPEN = '<think>';
+const THINK_CLOSE = '</think>';
+
+/** Length of the longest suffix of `text` that is a prefix of `tag`. */
+function partialTagLength(text: string, tag: string): number {
+  for (let n = Math.min(tag.length - 1, text.length); n > 0; n--) {
+    if (text.endsWith(tag.slice(0, n))) {
+      return n;
+    }
+  }
+
+  return 0;
+}
+
+/**
+ * Splits streamed content from servers that inline reasoning as a leading
+ * `<think>…</think>` block into thought and answer parts. Only a block at the
+ * very start of the content counts, so answers that mention the tag are kept.
+ */
+export class ThinkTagSplitter {
+  private state: 'start' | 'thinking' | 'answer' = 'start';
+
+  private buffer = '';
+
+  private trimAnswerStart = false;
+
+  push(text: string): Part[] {
+    this.buffer += text;
+    const parts: Part[] = [];
+    if (this.state === 'start') {
+      const trimmed = this.buffer.trimStart();
+      if (
+        !trimmed ||
+        (trimmed.length < THINK_OPEN.length && THINK_OPEN.startsWith(trimmed))
+      ) {
+        return parts;
+      }
+
+      if (trimmed.startsWith(THINK_OPEN)) {
+        this.state = 'thinking';
+        this.buffer = trimmed.slice(THINK_OPEN.length).replace(/^\s+/, '');
+      } else {
+        this.state = 'answer';
+      }
+    }
+
+    if (this.state === 'thinking') {
+      const end = this.buffer.indexOf(THINK_CLOSE);
+      if (end === -1) {
+        const keep = partialTagLength(this.buffer, THINK_CLOSE);
+        this.emit(parts, this.buffer.slice(0, this.buffer.length - keep), true);
+        this.buffer = this.buffer.slice(this.buffer.length - keep);
+        return parts;
+      }
+
+      this.emit(parts, this.buffer.slice(0, end), true);
+      this.buffer = this.buffer.slice(end + THINK_CLOSE.length);
+      this.state = 'answer';
+      this.trimAnswerStart = true;
+    }
+
+    if (this.trimAnswerStart) {
+      this.buffer = this.buffer.replace(/^\s+/, '');
+      this.trimAnswerStart = !this.buffer;
+    }
+
+    this.emit(parts, this.buffer, false);
+    this.buffer = '';
+    return parts;
+  }
+
+  /** Releases text held back while waiting for a possible tag. */
+  flush(): Part[] {
+    const parts: Part[] = [];
+    this.emit(parts, this.buffer, this.state === 'thinking');
+    this.buffer = '';
+    return parts;
+  }
+
+  private emit(parts: Part[], text: string, thought: boolean): void {
+    if (text) {
+      parts.push(thought ? { text, thought: true } : { text });
+    }
+  }
+}
+
 export class ProviderContentGenerator implements ContentGenerator {
   constructor(
     private readonly account: ProviderAccount,
@@ -564,6 +651,7 @@ export class ProviderContentGenerator implements ContentGenerator {
     let inputTokens = 0;
     let outputTokens = 0;
     let reasoning = '';
+    const thinkTags = new ThinkTagSplitter();
     for await (const data of readSSE(body)) {
       if (data === '[DONE]') {
         break;
@@ -620,13 +708,17 @@ export class ProviderContentGenerator implements ContentGenerator {
         }
 
         const choice = chunk.choices?.[0];
-        if (choice?.delta?.content) {
-          parts.push({ text: choice.delta.content });
-        }
-
+        // Only reasoning_content is replayed to the provider; the `reasoning`
+        // field and <think> blocks are shown but not sent back.
         if (choice?.delta?.reasoning_content) {
           reasoning += choice.delta.reasoning_content;
           parts.push({ text: choice.delta.reasoning_content, thought: true });
+        } else if (choice?.delta?.reasoning) {
+          parts.push({ text: choice.delta.reasoning, thought: true });
+        }
+
+        if (choice?.delta?.content) {
+          parts.push(...thinkTags.push(choice.delta.content));
         }
 
         for (const delta of choice?.delta?.tool_calls ?? []) {
@@ -675,6 +767,11 @@ export class ProviderContentGenerator implements ContentGenerator {
       throw new Error(
         'Provider stream ended before a completion marker. Please retry.',
       );
+    }
+
+    const held = thinkTags.flush();
+    if (held.length) {
+      yield response(held);
     }
 
     const parts: Part[] = [];

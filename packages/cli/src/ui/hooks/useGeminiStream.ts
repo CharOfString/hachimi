@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -90,6 +91,13 @@ import { useExecutionLifecycle } from './useExecutionLifecycle.js';
 import { handleAtCommand } from './atCommandProcessor.js';
 import { findLastSafeSplitPoint } from '../utils/markdownUtilities.js';
 import { getInlineThinkingMode } from '../utils/inlineThinkingMode.js';
+import {
+  getThoughtText,
+  isThoughtHeading,
+  splitFinishedThought,
+  toThoughtStatus,
+  toThoughtSummary,
+} from '../utils/thinkingStream.js';
 import { useStateAndRef } from './useStateAndRef.js';
 import type { UseHistoryManagerReturn } from './useHistoryManager.js';
 import { useLogger } from './useLogger.js';
@@ -259,6 +267,10 @@ export const useGeminiStream = (
   );
   const isLowErrorVerbosity = settings.merged.ui?.errorVerbosity !== 'full';
   const suppressedToolErrorCountRef = useRef(0);
+  // Streamed thought deltas are merged into one block until another event
+  // arrives; thinkingTextRef holds the block's unfinished paragraph.
+  const thinkingActiveRef = useRef(false);
+  const thinkingTextRef = useRef('');
   const suppressedToolErrorNoteShownRef = useRef(false);
   const lowVerbosityFailureNoteShownRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -1288,17 +1300,54 @@ export const useGeminiStream = (
   );
 
   const handleThoughtEvent = useCallback(
-    (eventValue: ThoughtSummary, _userMessageTimestamp: number) => {
-      setThought(eventValue);
-
-      if (getInlineThinkingMode(settings) === 'full') {
-        addItem({
-          type: 'thinking',
-          thought: eventValue,
-        } as HistoryItemThinking);
+    (eventValue: ThoughtSummary, userMessageTimestamp: number) => {
+      const chunk = getThoughtText(eventValue);
+      const inline = getInlineThinkingMode(settings) === 'full';
+      const startsBlock =
+        !thinkingActiveRef.current ||
+        (isThoughtHeading(chunk) && thinkingTextRef.current.trim() !== '');
+      if (startsBlock) {
+        thinkingTextRef.current = '';
+        if (inline && pendingHistoryItemRef.current) {
+          addItem(pendingHistoryItemRef.current, userMessageTimestamp);
+          setPendingHistoryItem(null);
+        }
       }
+      thinkingActiveRef.current = true;
+
+      const text = thinkingTextRef.current + chunk;
+      setThought(toThoughtStatus(text));
+      const [finished, rest] = splitFinishedThought(text);
+      thinkingTextRef.current = rest;
+      if (!inline) {
+        return;
+      }
+
+      if (finished.trim()) {
+        addItem(
+          {
+            type: 'thinking',
+            thought: toThoughtSummary(finished),
+          } as HistoryItemThinking,
+          userMessageTimestamp,
+        );
+      }
+      setPendingHistoryItem(
+        rest.trim()
+          ? ({
+              type: 'thinking',
+              thought: toThoughtSummary(rest),
+            } as HistoryItemThinking)
+          : null,
+      );
     },
-    [addItem, settings, setThought],
+    [
+      addItem,
+      pendingHistoryItemRef,
+      setPendingHistoryItem,
+      settings,
+      setThought,
+    ],
   );
 
   const handleUserCancelledEvent = useCallback(
@@ -1671,12 +1720,13 @@ export const useGeminiStream = (
       let geminiMessageBuffer = '';
       const toolCallRequests: ToolCallRequestInfo[] = [];
       let hasTerminalEvent = false;
+      thinkingActiveRef.current = false;
       for await (const event of stream) {
-        if (
-          event.type !== ServerGeminiEventType.Thought &&
-          thoughtRef.current !== null
-        ) {
-          setThought(null);
+        if (event.type !== ServerGeminiEventType.Thought) {
+          thinkingActiveRef.current = false;
+          if (thoughtRef.current !== null) {
+            setThought(null);
+          }
         }
 
         switch (event.type) {

@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -3954,7 +3955,101 @@ describe('useGeminiStream', () => {
           type: 'thinking',
           thought: expect.objectContaining({ subject: 'Full thought' }),
         }),
+        expect.any(Number),
       );
+    });
+
+    it('merges streamed reasoning deltas into paragraph blocks in full mode', async () => {
+      const fullThinkingSettings = {
+        // eslint-disable-next-line @typescript-eslint/no-misused-spread
+        ...mockLoadedSettings,
+        merged: {
+          ...mockLoadedSettings.merged,
+          ui: { inlineThinkingMode: 'full' },
+        },
+      } as unknown as LoadedSettings;
+      const delta = (text: string) => ({
+        type: ServerGeminiEventType.Thought,
+        value: { subject: '', description: text.trim(), text },
+      });
+      mockSendMessageStream.mockReturnValue(
+        (async function* () {
+          yield delta('Read');
+          yield delta(' the file');
+          yield delta('.\n\nThen');
+          yield delta(' answer');
+          yield {
+            type: ServerGeminiEventType.Content,
+            value: 'Done',
+          };
+          yield {
+            type: ServerGeminiEventType.Finished,
+            value: { reason: 'STOP', usageMetadata: undefined },
+          };
+        })(),
+      );
+
+      const { result } = await renderTestHook(
+        [],
+        undefined,
+        fullThinkingSettings,
+      );
+      await act(async () => {
+        await result.current.submitQuery('Test query');
+      });
+
+      const items = mockAddItem.mock.calls
+        .map(([item]) => item as { type: string; thought?: unknown })
+        .filter((item) => item.type !== 'user');
+      expect(items.slice(0, 2)).toEqual([
+        {
+          type: 'thinking',
+          thought: { subject: '', description: 'Read the file.' },
+        },
+        {
+          type: 'thinking',
+          thought: { subject: '', description: 'Then answer' },
+        },
+      ]);
+      expect(items[2]).toMatchObject({ type: 'gemini', text: 'Done' });
+    });
+
+    it('shows the latest reasoning line as the status when inline thinking is off', async () => {
+      let release!: () => void;
+      const gate = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      mockSendMessageStream.mockReturnValue(
+        (async function* () {
+          yield {
+            type: ServerGeminiEventType.Thought,
+            value: { subject: '', description: 'Read', text: 'Read' },
+          };
+          yield {
+            type: ServerGeminiEventType.Thought,
+            value: { subject: '', description: 'the file', text: ' the file' },
+          };
+          await gate;
+        })(),
+      );
+
+      const { result } = await renderTestHook();
+      let submit!: Promise<void>;
+      act(() => {
+        submit = result.current.submitQuery('Test query');
+      });
+
+      await waitFor(() => {
+        expect(result.current.thought?.subject).toBe('Read the file');
+      });
+      expect(mockAddItem).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'thinking' }),
+        expect.any(Number),
+      );
+      release();
+      await act(async () => {
+        await submit;
+      });
     });
 
     it('keeps thought transient and clears it on first non-thought event', async () => {

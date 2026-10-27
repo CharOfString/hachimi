@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -363,10 +364,10 @@ export class Turn {
         const parts = resp.candidates?.[0]?.content?.parts ?? [];
         for (const part of parts) {
           if (part.thought) {
-            const thought = parseThought(part.text ?? '');
+            const text = part.text ?? '';
             yield {
               type: GeminiEventType.Thought,
-              value: thought,
+              value: { ...parseThought(text), text },
               traceId,
             };
           }

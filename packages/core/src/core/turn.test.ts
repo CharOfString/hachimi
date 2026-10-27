@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -761,7 +762,11 @@ describe('Turn', () => {
         responseId: 'trace-456',
         expectedEvent: {
           type: GeminiEventType.Thought,
-          value: { subject: '', description: '[Thought: thinking]' },
+          value: {
+            subject: '',
+            description: '[Thought: thinking]',
+            text: '[Thought: thinking]',
+          },
           traceId: 'trace-456',
         },
       },

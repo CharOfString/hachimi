@@ -1,12 +1,18 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
 export type ThoughtSummary = {
   subject: string;
   description: string;
+  /**
+   * The unparsed thought text. Providers stream reasoning in small deltas, so
+   * consumers that accumulate thoughts need it with whitespace intact.
+   */
+  text?: string;
 };
 
 const START_DELIMITER = '**';

@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -19,7 +20,10 @@ interface ThinkingMessageProps {
 
 const THINKING_LEFT_PADDING = 1;
 
-function normalizeThoughtLines(thought: ThoughtSummary): string[] {
+function normalizeThoughtLines(thought: ThoughtSummary): {
+  heading?: string;
+  body: string[];
+} {
   const subject = normalizeEscapedNewlines(thought.subject).trim();
   const description = normalizeEscapedNewlines(thought.description).trim();
 
@@ -28,21 +32,14 @@ function normalizeThoughtLines(thought: ThoughtSummary): string[] {
     return !trimmed || /^\.+$/.test(trimmed);
   };
 
-  const lines: string[] = [];
+  const body = description
+    ? description
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => !isNoise(line))
+    : [];
 
-  if (subject && !isNoise(subject)) {
-    lines.push(subject);
-  }
-
-  if (description) {
-    const descriptionLines = description
-      .split('\n')
-      .map((line) => line.trim())
-      .filter((line) => !isNoise(line));
-    lines.push(...descriptionLines);
-  }
-
-  return lines;
+  return subject && !isNoise(subject) ? { heading: subject, body } : { body };
 }
 
 /**
@@ -54,9 +51,12 @@ export const ThinkingMessage: React.FC<ThinkingMessageProps> = ({
   terminalWidth,
   isFirstThinking,
 }) => {
-  const fullLines = useMemo(() => normalizeThoughtLines(thought), [thought]);
+  const { heading, body } = useMemo(
+    () => normalizeThoughtLines(thought),
+    [thought],
+  );
 
-  if (fullLines.length === 0) {
+  if (!heading && body.length === 0) {
     return null;
   }
 
@@ -81,12 +81,12 @@ export const ThinkingMessage: React.FC<ThinkingMessageProps> = ({
         flexDirection="column"
       >
         <Text> </Text>
-        {fullLines.length > 0 && (
+        {heading && (
           <Text color={theme.text.primary} bold italic>
-            {fullLines[0]}
+            {heading}
           </Text>
         )}
-        {fullLines.slice(1).map((line, index) => (
+        {body.map((line, index) => (
           <Text key={`body-line-${index}`} color={theme.text.secondary} italic>
             {line}
           </Text>
