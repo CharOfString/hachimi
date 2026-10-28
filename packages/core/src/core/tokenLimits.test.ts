@@ -33,6 +33,22 @@ describe('tokenLimit', () => {
     expect(tokenLimit('unknown', account)).toBe(32768);
   });
 
+  it('falls back to known limits when an account model has none', () => {
+    const account: ProviderAccount = {
+      id: 'test',
+      name: 'test',
+      providerId: 'custom',
+      protocol: 'openai',
+      baseUrl: 'https://example.com',
+      model: 'gemini-3.1-pro-preview',
+      models: [{ id: 'gemini-3.1-pro-preview' }, { id: 'glm-5' }],
+    };
+
+    expect(tokenLimit('gemini-3.1-pro-preview', account)).toBe(1_048_576);
+    expect(tokenLimit('chat-compression-3-pro', account)).toBe(1_048_576);
+    expect(tokenLimit('glm-5', account)).toBe(202752);
+  });
+
   it('should return the correct token limit for default models', () => {
     expect(tokenLimit(DEFAULT_GEMINI_MODEL)).toBe(1_048_576);
     expect(tokenLimit(DEFAULT_GEMINI_FLASH_MODEL)).toBe(1_048_576);

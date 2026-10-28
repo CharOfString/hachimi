@@ -16,6 +16,7 @@ import {
 } from '../config/models.js';
 
 import type { ProviderAccount } from '../providers/types.js';
+import { PROVIDER_PRESETS } from '../providers/presets.js';
 
 type Model = string;
 type TokenCount = number;
@@ -31,7 +32,14 @@ export function tokenLimit(
     const selected =
       account.models.find((entry) => entry.id === model) ??
       account.models.find((entry) => entry.id === account.model);
-    return selected?.contextWindowSize ?? 32768;
+    const id = selected?.id ?? account.model;
+    return (
+      selected?.contextWindowSize ??
+      PROVIDER_PRESETS.flatMap((preset) => preset.models).find(
+        (entry) => entry.id === id && entry.contextWindowSize,
+      )?.contextWindowSize ??
+      (id.startsWith('gemini-') ? tokenLimit(id) : 32768)
+    );
   }
 
   // Add other models as they become relevant or if specified by config
