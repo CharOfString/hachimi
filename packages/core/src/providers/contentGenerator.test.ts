@@ -127,6 +127,71 @@ describe('provider protocol adapter', () => {
     expect(init.redirect).toBe('error');
   });
 
+  it('splits parallel tool calls that share an index but have distinct ids', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        sse([
+          {
+            choices: [
+              {
+                delta: {
+                  tool_calls: [
+                    {
+                      index: 0,
+                      id: 'call1',
+                      function: {
+                        name: 'list_directory',
+                        arguments: '{"dir_path":"/a"}',
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+          {
+            choices: [
+              {
+                delta: {
+                  tool_calls: [
+                    {
+                      index: 0,
+                      id: 'call2',
+                      function: { name: 'read_file', arguments: '{"path":' },
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+          {
+            choices: [
+              {
+                delta: {
+                  tool_calls: [{ index: 0, function: { arguments: '"b"}' } }],
+                },
+                finish_reason: 'tool_calls',
+              },
+            ],
+          },
+          '[DONE]',
+        ]),
+      ),
+    );
+
+    const result = await new ProviderContentGenerator(
+      account,
+      'private-key',
+      () => 'chat',
+    ).generateContent({ model: 'chat', contents: 'hi' });
+
+    expect(result.functionCalls).toEqual([
+      { id: 'call1', name: 'list_directory', args: { dir_path: '/a' } },
+      { id: 'call2', name: 'read_file', args: { path: 'b' } },
+    ]);
+  });
+
   it('uses the requested model when the account has it', async () => {
     const fetchMock = vi
       .fn()

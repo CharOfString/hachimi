@@ -647,7 +647,8 @@ export class ProviderContentGenerator implements ContentGenerator {
     body: ReadableStream<Uint8Array>,
     anthropic: boolean,
   ): AsyncGenerator<GenerateContentResponse> {
-    const calls = new Map<number, ToolCall>();
+    const calls: ToolCall[] = [];
+    const open = new Map<number, ToolCall>();
     let finish: FinishReason | undefined;
     let inputTokens = 0;
     let outputTokens = 0;
@@ -674,11 +675,13 @@ export class ProviderContentGenerator implements ContentGenerator {
         }
 
         if (event.content_block?.type === 'tool_use') {
-          calls.set(event.index ?? 0, {
+          const call = {
             id: event.content_block.id ?? '',
             name: event.content_block.name ?? '',
             arguments: '',
-          });
+          };
+          calls.push(call);
+          open.set(event.index ?? 0, call);
         }
 
         if (event.delta?.text) {
@@ -690,7 +693,7 @@ export class ProviderContentGenerator implements ContentGenerator {
         }
 
         if (event.delta?.partial_json) {
-          const call = calls.get(event.index ?? 0);
+          const call = open.get(event.index ?? 0);
           if (call) {
             call.arguments += event.delta.partial_json;
           }
@@ -723,11 +726,12 @@ export class ProviderContentGenerator implements ContentGenerator {
         }
 
         for (const delta of choice?.delta?.tool_calls ?? []) {
-          const call = calls.get(delta.index) ?? {
-            id: '',
-            name: '',
-            arguments: '',
-          };
+          let call = open.get(delta.index);
+          if (!call || (delta.id && call.id && delta.id !== call.id)) {
+            call = { id: '', name: '', arguments: '' };
+            calls.push(call);
+            open.set(delta.index, call);
+          }
 
           if (delta.id) {
             call.id = delta.id;
@@ -740,8 +744,6 @@ export class ProviderContentGenerator implements ContentGenerator {
           if (delta.function?.arguments) {
             call.arguments += delta.function.arguments;
           }
-
-          calls.set(delta.index, call);
         }
 
         if (choice?.finish_reason) {
@@ -776,7 +778,7 @@ export class ProviderContentGenerator implements ContentGenerator {
     }
 
     const parts: Part[] = [];
-    for (const call of calls.values()) {
+    for (const call of calls) {
       if (!call.id || !call.name) {
         throw new Error('Provider returned an incomplete tool call.');
       }
