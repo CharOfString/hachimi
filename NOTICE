@@ -63,6 +63,9 @@ Modifications by CharOfString <root@charofstring.cc>:
 - Added a /model compress command and model.compressionModel setting to pick
   the model used for context compression, and resolved context window limits
   for provider models without a configured size.
+- Added a collapsed inline thinking mode, now the default, that streams
+  reasoning into a live block and folds it into a one-line summary when
+  thinking ends, and kept raw reasoning out of the status line.
 - Updated tests, documentation, source formatting and distribution notices.
 
 Product and provider names identify compatibility or the origin of the work.

@@ -573,11 +573,13 @@ const SETTINGS_SCHEMA = {
         label: 'Inline Thinking',
         category: 'UI',
         requiresRestart: false,
-        default: 'off',
-        description: 'Display model thinking inline: off or full.',
+        default: 'collapsed',
+        description:
+          'Display model thinking inline: off, collapsed (shown while thinking, then folded into a one-line summary) or full.',
         showInDialog: true,
         options: [
           { value: 'off', label: 'Off' },
+          { value: 'collapsed', label: 'Collapsed' },
           { value: 'full', label: 'Full' },
         ],
       },

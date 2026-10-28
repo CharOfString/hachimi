@@ -4014,7 +4014,7 @@ describe('useGeminiStream', () => {
       expect(items[2]).toMatchObject({ type: 'gemini', text: 'Done' });
     });
 
-    it('shows the latest reasoning line as the status when inline thinking is off', async () => {
+    it('streams reasoning into a live block and folds it when thinking ends', async () => {
       let release!: () => void;
       const gate = new Promise<void>((resolve) => {
         release = resolve;
@@ -4030,6 +4030,10 @@ describe('useGeminiStream', () => {
             value: { subject: '', description: 'the file', text: ' the file' },
           };
           await gate;
+          yield {
+            type: ServerGeminiEventType.Content,
+            value: 'Done',
+          };
         })(),
       );
 
@@ -4040,16 +4044,30 @@ describe('useGeminiStream', () => {
       });
 
       await waitFor(() => {
-        expect(result.current.thought?.subject).toBe('Read the file');
+        expect(result.current.pendingHistoryItems).toContainEqual(
+          expect.objectContaining({
+            type: 'thinking',
+            thought: { subject: '', description: 'Read the file' },
+          }),
+        );
       });
-      expect(mockAddItem).not.toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'thinking' }),
-        expect.any(Number),
-      );
+      expect(result.current.thought?.subject).toBe('');
       release();
       await act(async () => {
         await submit;
       });
+
+      const items = mockAddItem.mock.calls
+        .map(([item]) => item as { type: string })
+        .filter((item) => item.type !== 'user');
+      expect(items[0]).toMatchObject({
+        type: 'thinking',
+        durationMs: expect.any(Number),
+      });
+      expect(items[1]).toMatchObject({ type: 'gemini', text: 'Done' });
+      expect(result.current.pendingHistoryItems).not.toContainEqual(
+        expect.objectContaining({ type: 'thinking' }),
+      );
     });
 
     it('keeps thought transient and clears it on first non-thought event', async () => {
@@ -4073,7 +4091,14 @@ describe('useGeminiStream', () => {
         })(),
       );
 
-      const { result } = await renderTestHook();
+      const { result } = await renderTestHook([], undefined, {
+        // eslint-disable-next-line @typescript-eslint/no-misused-spread
+        ...mockLoadedSettings,
+        merged: {
+          ...mockLoadedSettings.merged,
+          ui: { inlineThinkingMode: 'off' },
+        },
+      } as unknown as LoadedSettings);
 
       await act(async () => {
         await result.current.submitQuery('Test query');

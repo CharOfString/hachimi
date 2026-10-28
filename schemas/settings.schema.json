@@ -331,11 +331,11 @@
         },
         "inlineThinkingMode": {
           "title": "Inline Thinking",
-          "description": "Display model thinking inline: off or full.",
-          "markdownDescription": "Display model thinking inline: off or full.\n\n- Category: `UI`\n- Requires restart: `no`\n- Default: `off`",
-          "default": "off",
+          "description": "Display model thinking inline: off, collapsed (shown while thinking, then folded into a one-line summary) or full.",
+          "markdownDescription": "Display model thinking inline: off, collapsed (shown while thinking, then folded into a one-line summary) or full.\n\n- Category: `UI`\n- Requires restart: `no`\n- Default: `collapsed`",
+          "default": "collapsed",
           "type": "string",
-          "enum": ["off", "full"]
+          "enum": ["off", "collapsed", "full"]
         },
         "showStatusInTitle": {
           "title": "Show Thoughts in Title",

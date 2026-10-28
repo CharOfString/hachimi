@@ -11,11 +11,13 @@ import { Box, Text } from 'ink';
 import type { ThoughtSummary } from '@google/gemini-cli-core';
 import { theme } from '../../semantic-colors.js';
 import { normalizeEscapedNewlines } from '../../utils/textUtils.js';
+import { formatDuration } from '../../utils/formatters.js';
 
 interface ThinkingMessageProps {
   thought: ThoughtSummary;
   terminalWidth: number;
   isFirstThinking?: boolean;
+  maxLines?: number;
 }
 
 const THINKING_LEFT_PADDING = 1;
@@ -50,11 +52,14 @@ export const ThinkingMessage: React.FC<ThinkingMessageProps> = ({
   thought,
   terminalWidth,
   isFirstThinking,
+  maxLines,
 }) => {
-  const { heading, body } = useMemo(
-    () => normalizeThoughtLines(thought),
-    [thought],
-  );
+  const { heading, body } = useMemo(() => {
+    const lines = normalizeThoughtLines(thought);
+    return maxLines === undefined
+      ? lines
+      : { ...lines, body: lines.body.slice(-maxLines) };
+  }, [thought, maxLines]);
 
   if (!heading && body.length === 0) {
     return null;
@@ -95,3 +100,14 @@ export const ThinkingMessage: React.FC<ThinkingMessageProps> = ({
     </Box>
   );
 };
+
+export const CollapsedThinkingMessage: React.FC<{ durationMs?: number }> = ({
+  durationMs,
+}) => (
+  <Text color={theme.text.secondary} italic>
+    {' '}
+    {durationMs === undefined
+      ? 'Thought'
+      : `Thought for ${formatDuration(durationMs)}`}
+  </Text>
+);

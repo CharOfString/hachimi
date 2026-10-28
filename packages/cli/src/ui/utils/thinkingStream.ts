@@ -6,8 +6,6 @@
 
 import { parseThought, type ThoughtSummary } from '@google/gemini-cli-core';
 
-const STATUS_MAX_LENGTH = 80;
-
 /** The raw text of a thought event, rebuilt for events without it. */
 export function getThoughtText(thought: ThoughtSummary): string {
   if (thought.text !== undefined) {
@@ -45,20 +43,8 @@ export function splitFinishedThought(text: string): [string, string] {
   return end > 0 ? [text.slice(0, end), text.slice(end + 2)] : ['', text];
 }
 
-/** A one-line status for the loading indicator: the subject or last line. */
 export function toThoughtStatus(text: string): ThoughtSummary {
-  if (isThoughtHeading(text)) {
-    return parseThought(text);
-  }
-  const line =
-    text
-      .split('\n')
-      .map((l) => l.trim())
-      .filter(Boolean)
-      .at(-1) ?? '';
-  const subject =
-    line.length > STATUS_MAX_LENGTH
-      ? `…${line.slice(line.length - STATUS_MAX_LENGTH + 1)}`
-      : line;
-  return { subject, description: '' };
+  return isThoughtHeading(text)
+    ? parseThought(text)
+    : { subject: '', description: '' };
 }

@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2026 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -37,7 +38,10 @@ import { McpStatus } from './views/McpStatus.js';
 import { GemmaStatus } from './views/GemmaStatus.js';
 import { ChatList } from './views/ChatList.js';
 import { ModelMessage } from './messages/ModelMessage.js';
-import { ThinkingMessage } from './messages/ThinkingMessage.js';
+import {
+  CollapsedThinkingMessage,
+  ThinkingMessage,
+} from './messages/ThinkingMessage.js';
 import { HintMessage } from './messages/HintMessage.js';
 import { getInlineThinkingMode } from '../utils/inlineThinkingMode.js';
 import { useSettings } from '../contexts/SettingsContext.js';
@@ -54,6 +58,8 @@ interface HistoryItemDisplayProps {
   isFirstAfterThinking?: boolean;
   isToolGroupBoundary?: boolean;
 }
+
+const LIVE_THINKING_LINES = 8;
 
 export const HistoryItemDisplay: React.FC<HistoryItemDisplayProps> = ({
   item,
@@ -89,13 +95,26 @@ export const HistoryItemDisplay: React.FC<HistoryItemDisplayProps> = ({
       marginTop={needTopMargin ? 1 : 0}
     >
       {/* Render standard message types */}
-      {itemForDisplay.type === 'thinking' && inlineThinkingMode !== 'off' && (
-        <ThinkingMessage
-          thought={itemForDisplay.thought}
-          terminalWidth={terminalWidth}
-          isFirstThinking={isFirstThinking}
-        />
-      )}
+      {itemForDisplay.type === 'thinking' &&
+        inlineThinkingMode === 'collapsed' &&
+        !isPending &&
+        isFirstThinking && (
+          <CollapsedThinkingMessage durationMs={itemForDisplay.durationMs} />
+        )}
+      {itemForDisplay.type === 'thinking' &&
+        (inlineThinkingMode === 'full' ||
+          (inlineThinkingMode === 'collapsed' && isPending)) && (
+          <ThinkingMessage
+            thought={itemForDisplay.thought}
+            terminalWidth={terminalWidth}
+            isFirstThinking={isFirstThinking}
+            maxLines={
+              inlineThinkingMode === 'collapsed'
+                ? LIVE_THINKING_LINES
+                : undefined
+            }
+          />
+        )}
       {itemForDisplay.type === 'hint' && (
         <HintMessage text={itemForDisplay.text} />
       )}

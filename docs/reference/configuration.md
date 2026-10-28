@@ -297,9 +297,10 @@ their corresponding top-level category object in your `settings.json` file.
 
 - **`ui.inlineThinkingMode`** (enum):
 
-  - **Description:** Display model thinking inline: off or full.
-  - **Default:** `"off"`
-  - **Values:** `"off"`, `"full"`
+  - **Description:** Display model thinking inline: off, collapsed (shown while
+    thinking, then folded into a one-line summary) or full.
+  - **Default:** `"collapsed"`
+  - **Values:** `"off"`, `"collapsed"`, `"full"`
 
 - **`ui.showStatusInTitle`** (boolean):
 

@@ -810,7 +810,7 @@ describe('MainContent', () => {
     mockUseSettings.mockReturnValue({
       merged: {
         ui: {
-          inlineThinkingMode: 'expanded',
+          inlineThinkingMode: 'full',
         },
       },
     });

@@ -52,13 +52,8 @@ describe('thinkingStream', () => {
     ]);
   });
 
-  it('summarizes status as the subject or last non-empty line', () => {
-    expect(toThoughtStatus('first\nsecond line\n\n').subject).toBe(
-      'second line',
-    );
+  it('summarizes status as the subject and keeps reasoning out of it', () => {
+    expect(toThoughtStatus('first\nsecond line\n\n').subject).toBe('');
     expect(toThoughtStatus('**Plan**\n\nSteps').subject).toBe('Plan');
-    const long = toThoughtStatus('x'.repeat(100)).subject;
-    expect(long).toHaveLength(80);
-    expect(long.startsWith('…')).toBe(true);
   });
 });

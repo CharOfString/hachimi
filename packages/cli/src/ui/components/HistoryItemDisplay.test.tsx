@@ -364,6 +364,68 @@ describe('<HistoryItemDisplay />', () => {
       expect(lastFrame({ allowEmpty: true })).toBe('');
       unmount();
     });
+
+    it('shows only the latest lines of a pending thought when collapsed', async () => {
+      const item: HistoryItem = {
+        ...baseItem,
+        type: 'thinking',
+        thought: {
+          subject: '',
+          description: Array.from(
+            { length: 12 },
+            (_, i) => `step ${i + 1}`,
+          ).join('\n'),
+        },
+      };
+      const { lastFrame, unmount } = await renderWithProviders(
+        <HistoryItemDisplay
+          {...baseItem}
+          item={item}
+          isPending={true}
+          isFirstThinking={true}
+        />,
+        {
+          settings: createMockSettings({
+            ui: { inlineThinkingMode: 'collapsed' },
+          }),
+        },
+      );
+
+      const frame = lastFrame();
+      expect(frame).toContain(' Thinking...');
+      expect(frame).toContain('step 12');
+      expect(frame).toContain('step 5');
+      expect(frame).not.toContain('step 4');
+      unmount();
+    });
+
+    it('folds a finished thought into a summary when collapsed', async () => {
+      const item: HistoryItem = {
+        ...baseItem,
+        type: 'thinking',
+        thought: { subject: 'Plan', description: 'hidden reasoning' },
+        durationMs: 12300,
+      };
+      const settings = createMockSettings({
+        ui: { inlineThinkingMode: 'collapsed' },
+      });
+      const first = await renderWithProviders(
+        <HistoryItemDisplay {...baseItem} item={item} isFirstThinking={true} />,
+        { settings },
+      );
+
+      expect(first.lastFrame()).toContain('Thought for 12.3s');
+      expect(first.lastFrame()).not.toContain('hidden reasoning');
+      first.unmount();
+
+      const rest = await renderWithProviders(
+        <HistoryItemDisplay {...baseItem} item={item} />,
+        { settings },
+      );
+
+      expect(rest.lastFrame({ allowEmpty: true })).toBe('');
+      rest.unmount();
+    });
   });
 
   describe.each([true, false])(

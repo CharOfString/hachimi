@@ -235,6 +235,8 @@ function calculateStreamingState(
  * Manages the Gemini stream, including user input, command processing,
  * API interaction, and tool call lifecycle.
  */
+const LIVE_THINKING_TEXT_LIMIT = 8000;
+
 export const useGeminiStream = (
   geminiClient: GeminiClient,
   history: HistoryItem[],
@@ -271,6 +273,7 @@ export const useGeminiStream = (
   // arrives; thinkingTextRef holds the block's unfinished paragraph.
   const thinkingActiveRef = useRef(false);
   const thinkingTextRef = useRef('');
+  const thinkingStartRef = useRef(0);
   const suppressedToolErrorNoteShownRef = useRef(false);
   const lowVerbosityFailureNoteShownRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -1302,13 +1305,21 @@ export const useGeminiStream = (
   const handleThoughtEvent = useCallback(
     (eventValue: ThoughtSummary, userMessageTimestamp: number) => {
       const chunk = getThoughtText(eventValue);
-      const inline = getInlineThinkingMode(settings) === 'full';
+      const mode = getInlineThinkingMode(settings);
+      const inline = mode === 'full';
+      const starting = !thinkingActiveRef.current;
+      if (starting) {
+        thinkingStartRef.current = Date.now();
+      }
       const startsBlock =
-        !thinkingActiveRef.current ||
+        starting ||
         (isThoughtHeading(chunk) && thinkingTextRef.current.trim() !== '');
       if (startsBlock) {
         thinkingTextRef.current = '';
-        if (inline && pendingHistoryItemRef.current) {
+        if (
+          (inline || (mode === 'collapsed' && starting)) &&
+          pendingHistoryItemRef.current
+        ) {
           addItem(pendingHistoryItemRef.current, userMessageTimestamp);
           setPendingHistoryItem(null);
         }
@@ -1317,6 +1328,17 @@ export const useGeminiStream = (
 
       const text = thinkingTextRef.current + chunk;
       setThought(toThoughtStatus(text));
+      if (mode === 'collapsed') {
+        thinkingTextRef.current =
+          text.length > LIVE_THINKING_TEXT_LIMIT && !isThoughtHeading(text)
+            ? text.slice(-LIVE_THINKING_TEXT_LIMIT / 2)
+            : text;
+        setPendingHistoryItem({
+          type: 'thinking',
+          thought: toThoughtSummary(text),
+        } as HistoryItemThinking);
+        return;
+      }
       const [finished, rest] = splitFinishedThought(text);
       thinkingTextRef.current = rest;
       if (!inline) {
@@ -1348,6 +1370,30 @@ export const useGeminiStream = (
       settings,
       setThought,
     ],
+  );
+
+  const finishThinking = useCallback(
+    (userMessageTimestamp: number) => {
+      if (!thinkingActiveRef.current) {
+        return;
+      }
+      thinkingActiveRef.current = false;
+      if (getInlineThinkingMode(settings) !== 'collapsed') {
+        return;
+      }
+      if (pendingHistoryItemRef.current?.type === 'thinking') {
+        setPendingHistoryItem(null);
+      }
+      addItem(
+        {
+          type: 'thinking',
+          thought: { subject: '', description: '' },
+          durationMs: Date.now() - thinkingStartRef.current,
+        } as HistoryItemThinking,
+        userMessageTimestamp,
+      );
+    },
+    [addItem, pendingHistoryItemRef, setPendingHistoryItem, settings],
   );
 
   const handleUserCancelledEvent = useCallback(
@@ -1723,7 +1769,7 @@ export const useGeminiStream = (
       thinkingActiveRef.current = false;
       for await (const event of stream) {
         if (event.type !== ServerGeminiEventType.Thought) {
-          thinkingActiveRef.current = false;
+          finishThinking(userMessageTimestamp);
           if (thoughtRef.current !== null) {
             setThought(null);
           }
@@ -1818,6 +1864,7 @@ export const useGeminiStream = (
           }
         }
       }
+      finishThinking(userMessageTimestamp);
       if (signal.aborted || turnCancelledRef.current) {
         pendingToolCallRequestsRef.current = [];
         return StreamProcessingStatus.UserCancelled;
@@ -1866,6 +1913,7 @@ export const useGeminiStream = (
     [
       handleContentEvent,
       handleThoughtEvent,
+      finishThinking,
       thoughtRef,
       handleUserCancelledEvent,
       handleErrorEvent,
