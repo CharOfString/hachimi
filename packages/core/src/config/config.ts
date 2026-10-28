@@ -689,6 +689,7 @@ export interface ConfigParameters {
   shellBackgroundCompletionBehavior?: string;
   skipNextSpeakerCheck?: boolean;
   reasoningEffort?: ReasoningEffort;
+  compressionModel?: string;
   shellExecutionConfig?: ShellExecutionConfig;
   extensionManagement?: boolean;
   extensionRegistryURI?: string;
@@ -912,6 +913,7 @@ export class Config implements McpContext, AgentLoopContext {
     | 'silent';
   private readonly skipNextSpeakerCheck: boolean;
   private reasoningEffort: ReasoningEffort | undefined;
+  private compressionModel: string | undefined;
   private readonly useBackgroundColor: boolean;
   private readonly useAlternateBuffer: boolean;
   private readonly useTerminalBuffer: boolean;
@@ -1298,6 +1300,7 @@ export class Config implements McpContext, AgentLoopContext {
 
     this.skipNextSpeakerCheck = params.skipNextSpeakerCheck ?? true;
     this.reasoningEffort = params.reasoningEffort;
+    this.compressionModel = params.compressionModel;
     this.shellExecutionConfig = {
       terminalWidth: params.shellExecutionConfig?.terminalWidth ?? 80,
       terminalHeight: params.shellExecutionConfig?.terminalHeight ?? 24,
@@ -3823,6 +3826,14 @@ export class Config implements McpContext, AgentLoopContext {
 
   setReasoningEffort(effort: ReasoningEffort | undefined): void {
     this.reasoningEffort = effort;
+  }
+
+  getCompressionModel(): string | undefined {
+    return this.compressionModel;
+  }
+
+  setCompressionModel(model: string | undefined): void {
+    this.compressionModel = model;
   }
 
   getRetryFetchErrors(): boolean {

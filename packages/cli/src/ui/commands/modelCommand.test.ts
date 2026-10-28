@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -165,6 +166,70 @@ describe('modelCommand', () => {
         expect.objectContaining({
           type: MessageType.ERROR,
           text: expect.stringContaining('Usage: /model set <model-name>'),
+        }),
+      );
+    });
+  });
+
+  describe('compress subcommand', () => {
+    const compressCommand = () =>
+      modelCommand.subCommands!.find((c) => c.name === 'compress')!;
+
+    const withConfig = () => {
+      let current: string | undefined;
+      const config = {
+        getCompressionModel: vi.fn(() => current),
+        setCompressionModel: vi.fn((model?: string) => {
+          current = model;
+        }),
+        get config() {
+          return this;
+        },
+      };
+      mockContext.services.agentContext = config as unknown as Config;
+      return config;
+    };
+
+    it('shows the current compression model without arguments', async () => {
+      withConfig();
+      await compressCommand().action!(mockContext, '');
+
+      expect(mockContext.ui.addItem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: MessageType.INFO,
+          text: expect.stringContaining(
+            'Compression model: default (the conversation model)',
+          ),
+        }),
+      );
+    });
+
+    it('sets the compression model for the session', async () => {
+      const config = withConfig();
+      await compressCommand().action!(mockContext, 'gemini-flash');
+
+      expect(config.setCompressionModel).toHaveBeenCalledWith('gemini-flash');
+      expect(mockContext.services.settings.setValue).not.toHaveBeenCalled();
+      expect(mockContext.ui.addItem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          text: 'Compression model set to gemini-flash',
+        }),
+      );
+    });
+
+    it('persists and resets the compression model', async () => {
+      const config = withConfig();
+      await compressCommand().action!(mockContext, 'default --persist');
+
+      expect(config.setCompressionModel).toHaveBeenCalledWith(undefined);
+      expect(mockContext.services.settings.setValue).toHaveBeenCalledWith(
+        'User',
+        'model.compressionModel',
+        undefined,
+      );
+      expect(mockContext.ui.addItem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          text: 'Compression model reset to the conversation model (persisted)',
         }),
       );
     });

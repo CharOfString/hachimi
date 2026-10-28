@@ -1165,6 +1165,16 @@ const SETTINGS_SCHEMA = {
           { value: 'max', label: 'Max' },
         ],
       },
+      compressionModel: {
+        type: 'string',
+        label: 'Compression Model',
+        category: 'Model',
+        requiresRestart: false,
+        default: undefined as string | undefined,
+        description:
+          'The model used to summarize history when compressing context. Unset uses the conversation model. Configure with /model compress.',
+        showInDialog: false,
+      },
       maxSessionTurns: {
         type: 'number',
         label: 'Max Session Turns',

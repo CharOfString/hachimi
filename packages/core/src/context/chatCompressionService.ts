@@ -587,9 +587,15 @@ export class ChatCompressionService {
       originalHistoryToCompress.flatMap((c) => c.parts || []),
     );
 
+    const compressionModel = config.getCompressionModel?.();
+    const compressionModelKey =
+      compressionModel ?? modelStringToModelConfigAlias(model);
     const historyForSummarizer =
       originalToCompressTokenCount <
-      tokenLimit(model, config.getContentGeneratorConfig?.()?.providerAccount)
+      tokenLimit(
+        compressionModel ?? model,
+        config.getContentGeneratorConfig?.()?.providerAccount,
+      )
         ? originalHistoryToCompress
         : historyToCompressTruncated;
 
@@ -602,7 +608,7 @@ export class ChatCompressionService {
       : 'Generate a new <state_snapshot> based on the provided history.';
 
     const summaryResponse = await config.getBaseLlmClient().generateContent({
-      modelConfigKey: { model: modelStringToModelConfigAlias(model) },
+      modelConfigKey: { model: compressionModelKey },
       contents: [
         ...historyForSummarizer,
         {
@@ -627,7 +633,7 @@ export class ChatCompressionService {
     const verificationResponse = await config
       .getBaseLlmClient()
       .generateContent({
-        modelConfigKey: { model: modelStringToModelConfigAlias(model) },
+        modelConfigKey: { model: compressionModelKey },
         contents: [
           ...historyForSummarizer,
           {

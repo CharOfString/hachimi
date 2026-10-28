@@ -311,6 +311,14 @@ Slash commands provide meta-level control over the CLI itself.
   - **`set`**:
     - **Description:** Set the model to use.
     - **Usage:** `/model set <model-name> [--persist]`
+  - **`compress`**:
+    - **Description:** Show or set the model used to summarize history when
+      compressing context. Without a model name, shows the current one.
+      `default` goes back to the conversation model. With `--persist`, the
+      choice is saved to `model.compressionModel` in your user settings.
+    - **Usage:** `/model compress [<model-name>|default] [--persist]`
+    - **Note:** With a provider account, the model must be one of the account's
+      configured models.
 
 ### `/permissions`
 

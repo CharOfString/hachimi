@@ -13,6 +13,7 @@ import {
   logModelSlashCommand,
 } from '@google/gemini-cli-core';
 import { ProviderAccountsDialog } from '../auth/ProviderAccountsDialog.js';
+import { SettingScope } from '../../config/settings.js';
 
 import {
   type CommandContext,
@@ -68,6 +69,69 @@ const setModelCommand: SlashCommand = {
   },
 };
 
+const COMPRESS_USAGE =
+  'Usage: /model compress [<model-name>|default] [--persist]';
+
+const compressModelCommand: SlashCommand = {
+  name: 'compress',
+  description: `Set the model used to compress context. ${COMPRESS_USAGE}`,
+  kind: CommandKind.BUILT_IN,
+  autoExecute: false,
+  action: async (context: CommandContext, args: string) => {
+    const config = context.services.agentContext?.config;
+    if (!config) {
+      return;
+    }
+
+    const parts = args.trim().split(/\s+/).filter(Boolean);
+    const persist = parts.includes('--persist');
+    const names = parts.filter((part) => part !== '--persist');
+
+    if (names.length === 0) {
+      context.ui.addItem({
+        type: MessageType.INFO,
+        text: `Compression model: ${config.getCompressionModel() ?? 'default (the conversation model)'}\n${COMPRESS_USAGE}`,
+      });
+      return;
+    }
+
+    if (names.length > 1) {
+      context.ui.addItem({ type: MessageType.ERROR, text: COMPRESS_USAGE });
+      return;
+    }
+
+    const modelName = names[0] === 'default' ? undefined : names[0];
+    const account = getActiveAccount();
+    if (
+      modelName &&
+      account &&
+      context.services.settings.merged.security.auth.selectedType ===
+        AuthType.PROVIDER_ACCOUNT &&
+      !account.models.some((m) => m.id === modelName)
+    ) {
+      context.ui.addItem({
+        type: MessageType.ERROR,
+        text: 'Model is not configured for the active account. Edit its models in /auth first.',
+      });
+      return;
+    }
+
+    if (persist) {
+      context.services.settings.setValue(
+        SettingScope.User,
+        'model.compressionModel',
+        modelName,
+      );
+    }
+    config.setCompressionModel(modelName);
+
+    context.ui.addItem({
+      type: MessageType.INFO,
+      text: `${modelName ? `Compression model set to ${modelName}` : 'Compression model reset to the conversation model'}${persist ? ' (persisted)' : ''}`,
+    });
+  },
+};
+
 const manageModelCommand: SlashCommand = {
   name: 'manage',
   description: 'Opens a dialog to configure the model',
@@ -108,7 +172,7 @@ export const modelCommand: SlashCommand = {
   description: 'Manage model configuration',
   kind: CommandKind.BUILT_IN,
   autoExecute: false,
-  subCommands: [manageModelCommand, setModelCommand],
+  subCommands: [manageModelCommand, setModelCommand, compressModelCommand],
   action: async (context: CommandContext, args: string) =>
     manageModelCommand.action!(context, args),
 };

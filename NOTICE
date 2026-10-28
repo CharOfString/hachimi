@@ -60,6 +60,9 @@ Modifications by CharOfString <root@charofstring.cc>:
   is wide enough.
 - Identified the agent as Hachimi CLI in system prompts and added a
   get_identity tool reporting the active model, provider and version.
+- Added a /model compress command and model.compressionModel setting to pick
+  the model used for context compression, and resolved context window limits
+  for provider models without a configured size.
 - Updated tests, documentation, source formatting and distribution notices.
 
 Product and provider names identify compatibility or the origin of the work.

@@ -1102,6 +1102,7 @@ export async function loadCliConfig(
     // causing infinite agent_thought_chunk loops.
     skipNextSpeakerCheck: isAcpMode || settings.model?.skipNextSpeakerCheck,
     reasoningEffort: settings.model?.reasoningEffort,
+    compressionModel: settings.model?.compressionModel,
     truncateToolOutputThreshold: settings.tools?.truncateToolOutputThreshold,
     eventEmitter: coreEvents,
     useWriteTodos: argv.useWriteTodos ?? settings.useWriteTodos,

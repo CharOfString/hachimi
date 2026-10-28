@@ -525,6 +525,7 @@ export class ProviderContentGenerator implements ContentGenerator {
     const anthropic = this.account.protocol === 'anthropic';
     const current = this.currentModel();
     const model =
+      this.account.models.find((m) => m.id === request.model) ??
       this.account.models.find((m) => m.id === current) ??
       this.account.models.find((m) => m.id === this.account.model)!;
     if (

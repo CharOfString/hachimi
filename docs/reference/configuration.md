@@ -579,6 +579,12 @@ their corresponding top-level category object in your `settings.json` file.
   - **Default:** `undefined`
   - **Values:** `"low"`, `"medium"`, `"high"`, `"xhigh"`, `"max"`
 
+- **`model.compressionModel`** (string):
+
+  - **Description:** The model used to summarize history when compressing
+    context. Unset uses the conversation model. Configure with /model compress.
+  - **Default:** `undefined`
+
 - **`model.maxSessionTurns`** (number):
 
   - **Description:** Maximum number of user/model/tool turns to keep in a

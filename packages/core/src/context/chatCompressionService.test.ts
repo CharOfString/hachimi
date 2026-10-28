@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -308,6 +309,34 @@ describe('ChatCompressionService', () => {
     expect(mockConfig.getBaseLlmClient().generateContent).toHaveBeenCalledTimes(
       2,
     );
+  });
+
+  it('should summarize with the configured compression model', async () => {
+    vi.mocked(mockChat.getHistory).mockReturnValue([
+      { role: 'user', parts: [{ text: 'msg1' }] },
+      { role: 'model', parts: [{ text: 'msg2' }] },
+      { role: 'user', parts: [{ text: 'msg3' }] },
+      { role: 'model', parts: [{ text: 'msg4' }] },
+    ]);
+    vi.mocked(mockChat.getLastPromptTokenCount).mockReturnValue(600000);
+    mockConfig.getCompressionModel = vi.fn().mockReturnValue('glm-5');
+
+    await service.compress(
+      mockChat,
+      mockPromptId,
+      false,
+      mockModel,
+      mockConfig,
+      false,
+    );
+
+    const calls = vi.mocked(mockConfig.getBaseLlmClient().generateContent).mock
+      .calls;
+    expect(calls).toHaveLength(2);
+    for (const [params] of calls) {
+      expect(params.modelConfigKey).toEqual({ model: 'glm-5' });
+    }
+    expect(tokenLimit).toHaveBeenCalledWith('glm-5', undefined);
   });
 
   it('should fall back to initial summary if verification response is empty', async () => {

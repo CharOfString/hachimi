@@ -127,6 +127,29 @@ describe('provider protocol adapter', () => {
     expect(init.redirect).toBe('error');
   });
 
+  it('uses the requested model when the account has it', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(async () =>
+        sse([
+          { choices: [{ delta: { content: 'ok' }, finish_reason: 'stop' }] },
+          '[DONE]',
+        ]),
+      );
+    vi.stubGlobal('fetch', fetchMock);
+    const generator = new ProviderContentGenerator(
+      account,
+      'private-key',
+      () => 'chat',
+    );
+
+    await generator.generateContent({ model: 'reasoner', contents: 'hi' });
+    await generator.generateContent({ model: 'gemini-flash', contents: 'hi' });
+
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).model).toBe('reasoner');
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body).model).toBe('chat');
+  });
+
   it('preserves tool call IDs and reasoning across subsequent turns', () => {
     const request: GenerateContentParameters = {
       model: 'chat',
