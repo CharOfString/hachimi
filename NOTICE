@@ -58,6 +58,8 @@ Modifications by CharOfString <root@charofstring.cc>:
   merged the per-delta thoughts of older sessions when resuming them.
 - Placed the version and sign-in details beside a custom logo when the terminal
   is wide enough.
+- Identified the agent as Hachimi CLI in system prompts and added a
+  get_identity tool reporting the active model, provider and version.
 - Updated tests, documentation, source formatting and distribution notices.
 
 Product and provider names identify compatibility or the origin of the work.

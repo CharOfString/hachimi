@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -67,7 +68,7 @@ export async function getEnvironmentContext(config: Config): Promise<Part[]> {
 
   const context = `
 <session_context>
-This is the Gemini CLI. We are setting up the context for our chat.
+This is the Hachimi CLI. We are setting up the context for our chat.
 Today's date is ${today} (formatted according to the user's locale).
 My operating system is: ${platform}
 The project's temporary directory is: ${tempDir}

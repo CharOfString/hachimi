@@ -54,6 +54,7 @@ import {
 import { WebSearchTool } from '../tools/web-search.js';
 import { AskUserTool } from '../tools/ask-user.js';
 import { UpdateTopicTool } from '../tools/topicTool.js';
+import { GetIdentityTool } from '../tools/get-identity.js';
 import { TopicState } from './topicState.js';
 import { AgentTool } from '../agents/agent-tool.js';
 import { ExitPlanModeTool } from '../tools/exit-plan-mode.js';
@@ -4038,6 +4039,9 @@ export class Config implements McpContext, AgentLoopContext {
       registry.registerTool(new UpdateTopicTool(this, this.messageBus)),
     );
 
+    maybeRegister(GetIdentityTool, () =>
+      registry.registerTool(new GetIdentityTool(this, this.messageBus)),
+    );
     maybeRegister(LSTool, () =>
       registry.registerTool(new LSTool(this, this.messageBus)),
     );

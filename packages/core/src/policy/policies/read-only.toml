@@ -50,7 +50,8 @@ toolName = [
   "complete_task",
   # MCP resource tools
   "read_mcp_resource",
-  "list_mcp_resources"
+  "list_mcp_resources",
+  "get_identity"
 ]
 decision = "allow"
 priority = 50

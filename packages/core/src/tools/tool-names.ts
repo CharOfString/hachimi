@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2025 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -190,6 +191,8 @@ export const TRACKER_VISUALIZE_TOOL_NAME = 'tracker_visualize';
 
 export const AGENT_TOOL_NAME = 'invoke_agent';
 
+export const GET_IDENTITY_TOOL_NAME = 'get_identity';
+
 // Tool Display Names
 export const WRITE_FILE_DISPLAY_NAME = 'WriteFile';
 export const EDIT_DISPLAY_NAME = 'Edit';
@@ -273,6 +276,7 @@ export const ALL_BUILTIN_TOOL_NAMES = [
   AGENT_TOOL_NAME,
   READ_MCP_RESOURCE_TOOL_NAME,
   LIST_MCP_RESOURCES_TOOL_NAME,
+  GET_IDENTITY_TOOL_NAME,
 ] as const;
 
 /**
@@ -294,6 +298,7 @@ export const PLAN_MODE_TOOLS = [
   'cli_help',
   READ_MCP_RESOURCE_TOOL_NAME,
   LIST_MCP_RESOURCES_TOOL_NAME,
+  GET_IDENTITY_TOOL_NAME,
 ] as const;
 
 /**

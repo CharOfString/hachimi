@@ -1,6 +1,7 @@
 /**
  * @license
  * Copyright 2026 Google LLC
+ * Modifications Copyright 2026 CharOfString <root@charofstring.cc>
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -189,8 +190,8 @@ export function renderPreamble(options?: PreambleOptions): string {
   if (options.approvalMode === 'autoEdit') modeStr = 'Auto-Edit';
 
   const base = options.interactive
-    ? 'You are Gemini CLI, an interactive CLI agent specializing in software engineering tasks.'
-    : 'You are Gemini CLI, an autonomous CLI agent specializing in software engineering tasks.';
+    ? 'You are Hachimi CLI, an interactive CLI agent specializing in software engineering tasks.'
+    : 'You are Hachimi CLI, an autonomous CLI agent specializing in software engineering tasks.';
 
   return `${base} You are currently operating in **${modeStr}** mode. Your primary goal is to help users safely and effectively.`;
 }
