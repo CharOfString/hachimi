@@ -695,14 +695,34 @@ function mergeThoughts(
 /**
  * Converts session/conversation data into UI history format.
  */
+function visibleParts(
+  content: ConversationRecord['messages'][number]['content'],
+): ConversationRecord['messages'][number]['content'] {
+  return Array.isArray(content)
+    ? content.filter(
+        (part) =>
+          typeof part === 'string' ||
+          !(part.functionCall || part.functionResponse || part.thought),
+      )
+    : content;
+}
+
 export function convertSessionToHistoryFormats(
   messages: ConversationRecord['messages'],
 ): {
   uiHistory: HistoryItemWithoutId[];
 } {
   const uiHistory: HistoryItemWithoutId[] = [];
+  let afterSnapshot = false;
 
   for (const msg of messages) {
+    if (afterSnapshot) {
+      afterSnapshot = false;
+      if (msg.type === 'gemini') {
+        continue;
+      }
+    }
+
     // Add thoughts if present
     if (msg.type === 'gemini' && msg.thoughts && msg.thoughts.length > 0) {
       for (const thought of mergeThoughts(msg.thoughts)) {
@@ -712,9 +732,9 @@ export function convertSessionToHistoryFormats(
 
     // Add the message only if it has content
     const displayContentString = msg.displayContent
-      ? partListUnionToString(msg.displayContent)
+      ? partListUnionToString(visibleParts(msg.displayContent))
       : undefined;
-    const contentString = partListUnionToString(msg.content);
+    const contentString = partListUnionToString(visibleParts(msg.content));
     const uiText = displayContentString || contentString;
 
     // Skip internal context messages in the UI history
@@ -723,6 +743,11 @@ export function convertSessionToHistoryFormats(
       trimmedText.startsWith('<session_context>') ||
       trimmedText.startsWith('<hook_context>')
     ) {
+      continue;
+    }
+
+    if (msg.type === 'user' && trimmedText.includes('<state_snapshot>')) {
+      afterSnapshot = true;
       continue;
     }
 

@@ -1264,6 +1264,70 @@ describe('convertSessionToHistoryFormats', () => {
     });
   });
 
+  it('should hide compression snapshots, tool calls and tool responses', () => {
+    const timestamp = new Date().toISOString();
+    const messages: MessageRecord[] = [
+      {
+        id: '1',
+        timestamp,
+        type: 'user',
+        content: [
+          { text: '<scratchpad>notes</scratchpad>\n<state_snapshot>…' },
+        ],
+      },
+      {
+        id: '2',
+        timestamp,
+        type: 'gemini',
+        content: [{ text: 'Got it. Thanks for the additional context!' }],
+      },
+      { id: '3', timestamp, type: 'user', content: [{ text: 'Fix fork' }] },
+      {
+        id: '4',
+        timestamp,
+        type: 'gemini',
+        content: [
+          { text: 'reasoning', thought: true },
+          { functionCall: { name: 'update_topic', args: {} } },
+        ],
+        toolCalls: [
+          {
+            id: 'call_1',
+            name: 'update_topic',
+            status: CoreToolCallStatus.Success,
+            timestamp,
+            args: {},
+          },
+        ],
+      },
+      {
+        id: '5',
+        timestamp,
+        type: 'user',
+        content: [
+          {
+            functionResponse: {
+              id: 'call_1',
+              name: 'update_topic',
+              response: { output: 'ok' },
+            },
+          },
+        ],
+      },
+      { id: '6', timestamp, type: 'gemini', content: 'Done.' },
+    ];
+
+    const result = convertSessionToHistoryFormats(messages);
+
+    expect(result.uiHistory.map((item) => item.type)).toEqual([
+      'user',
+      'tool_group',
+      'gemini',
+    ]);
+    expect(result.uiHistory[0]).toEqual({ type: 'user', text: 'Fix fork' });
+    expect(result.uiHistory[2]).toEqual({ type: 'gemini', text: 'Done.' });
+  });
+
   it('should merge per-delta thoughts from older sessions', () => {
     const timestamp = new Date().toISOString();
     const messages: MessageRecord[] = [
