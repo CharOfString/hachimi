@@ -10,7 +10,8 @@
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "hachimi": "dist/index.js"
+    "hachimi": "dist/index.js",
+    "哈基米": "dist/index.js"
   },
   "scripts": {
     "build": "node ../../scripts/build_package.js",

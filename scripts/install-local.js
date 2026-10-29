@@ -47,46 +47,60 @@ if (args.length !== 0 && (args.length !== 2 || args[0] !== '--prefix')) {
 const prefix = path.resolve(args[1] ?? path.join(homedir(), '.local'));
 const library = path.join(prefix, 'lib', 'hachimi-cli');
 const executable = path.join(prefix, 'bin', 'hachimi');
+const alias = path.join(prefix, 'bin', '哈基米');
 const bundle = path.join(root, 'bundle');
 
 if (!existsSync(path.join(bundle, 'gemini.js'))) {
   throw new Error('Missing build output. Run npm run build:install first.');
 }
 
-let previousExecutable;
+const acceptedTargets = [
+  path.join(library, 'bundle', 'gemini.js'),
+  path.join(
+    prefix,
+    'lib',
+    'node_modules',
+    'hachimi-cli',
+    'bundle',
+    'gemini.js',
+  ),
+  path.join(root, 'bundle', 'gemini.js'),
+];
 
-try {
-  const stat = lstatSync(executable);
+function existingLink(file, targets) {
+  try {
+    const stat = lstatSync(file);
 
-  if (!stat.isSymbolicLink()) {
-    throw new Error(`Refusing to replace an existing file: ${executable}`);
-  }
+    if (!stat.isSymbolicLink()) {
+      throw new Error(`Refusing to replace an existing file: ${file}`);
+    }
 
-  previousExecutable = readlinkSync(executable);
-  const target = path.resolve(path.dirname(executable), previousExecutable);
-  const acceptedTargets = [
-    path.join(library, 'bundle', 'gemini.js'),
-    path.join(
-      prefix,
-      'lib',
-      'node_modules',
-      'hachimi-cli',
-      'bundle',
-      'gemini.js',
-    ),
-    path.join(root, 'bundle', 'gemini.js'),
-  ];
+    const previous = readlinkSync(file);
 
-  if (!acceptedTargets.includes(target)) {
-    throw new Error(
-      `Refusing to replace an unrelated executable: ${executable}`,
-    );
-  }
-} catch (error) {
-  if (error.code !== 'ENOENT') {
-    throw error;
+    if (!targets.includes(path.resolve(path.dirname(file), previous))) {
+      throw new Error(`Refusing to replace an unrelated executable: ${file}`);
+    }
+
+    return previous;
+  } catch (error) {
+    if (error.code !== 'ENOENT') {
+      throw error;
+    }
   }
 }
+
+const links = [
+  {
+    file: executable,
+    target: '../lib/hachimi-cli/bundle/gemini.js',
+    previous: existingLink(executable, acceptedTargets),
+  },
+  {
+    file: alias,
+    target: 'hachimi',
+    previous: existingLink(alias, [executable, ...acceptedTargets]),
+  },
+];
 
 if (existsSync(library)) {
   const manifest = path.join(library, 'package.json');
@@ -108,7 +122,6 @@ const application = path.join(staging, 'application');
 const backup = path.join(staging, 'previous');
 let movedPrevious = false;
 let installed = false;
-let executableRemoved = false;
 
 function copyDependency(name, from, destination, optional = false) {
   const require = createRequire(path.join(from, 'package.json'));
@@ -167,7 +180,7 @@ try {
         version: metadata.version,
         type: 'module',
         license: metadata.license,
-        bin: { hachimi: 'bundle/gemini.js' },
+        bin: { hachimi: 'bundle/gemini.js', 哈基米: 'bundle/gemini.js' },
       },
       null,
       2,
@@ -188,14 +201,18 @@ try {
   renameSync(application, library);
   installed = true;
 
-  if (previousExecutable !== undefined) {
-    rmSync(executable);
-    executableRemoved = true;
+  for (const link of links) {
+    if (link.previous !== undefined) {
+      rmSync(link.file);
+      link.removed = true;
+    }
+
+    symlinkSync(link.target, link.file);
+    link.created = true;
   }
 
-  symlinkSync('../lib/hachimi-cli/bundle/gemini.js', executable);
   console.log(`Installed ${metadata.name} ${metadata.version} to ${library}`);
-  console.log(`Run: ${executable}`);
+  console.log(`Run: ${executable} (alias: ${alias})`);
 
   if (
     !(process.env['PATH'] ?? '')
@@ -213,8 +230,14 @@ try {
     renameSync(backup, library);
   }
 
-  if (executableRemoved && !existsSync(executable)) {
-    symlinkSync(previousExecutable, executable);
+  for (const link of links) {
+    if (link.created) {
+      rmSync(link.file, { force: true });
+    }
+
+    if (link.removed) {
+      symlinkSync(link.previous, link.file);
+    }
   }
 
   throw error;

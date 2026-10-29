@@ -8,9 +8,11 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   cpSync,
   existsSync,
+  lstatSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  readlinkSync,
   rmSync,
   writeFileSync,
 } from 'node:fs';
@@ -106,6 +108,35 @@ describe.skipIf(process.platform === 'win32')('local installation', () => {
       readFileSync(path.join(prefix, 'lib/hachimi-cli/NOTICE'), 'utf8'),
     ).toBe('attribution');
     expect(existsSync(path.join(prefix, 'bin/gemini'))).toBe(false);
+  });
+
+  it('installs the 哈基米 alias pointing at hachimi', () => {
+    expect(install().status).toBe(0);
+    const alias = path.join(prefix, 'bin/哈基米');
+    expect(readlinkSync(alias)).toBe('hachimi');
+    rmSync(checkout, { recursive: true });
+    const result = spawnSync(process.execPath, [alias], { encoding: 'utf8' });
+    expect(result.error).toBeUndefined();
+    expect(result.stdout.trim()).toBe('installed independently');
+  });
+
+  it('keeps the 哈基米 alias across updates', () => {
+    expect(install().status).toBe(0);
+    expect(install().status).toBe(0);
+    expect(lstatSync(path.join(prefix, 'bin/哈基米')).isSymbolicLink()).toBe(
+      true,
+    );
+  });
+
+  it('leaves an unrelated 哈基米 executable intact', () => {
+    mkdirSync(path.join(prefix, 'bin'), { recursive: true });
+    writeFileSync(path.join(prefix, 'bin/哈基米'), 'do not overwrite');
+    expect(install().status).not.toBe(0);
+    expect(readFileSync(path.join(prefix, 'bin/哈基米'), 'utf8')).toBe(
+      'do not overwrite',
+    );
+    expect(existsSync(path.join(prefix, 'bin/hachimi'))).toBe(false);
+    expect(existsSync(path.join(prefix, 'lib/hachimi-cli'))).toBe(false);
   });
 
   it('updates an existing installation', () => {
