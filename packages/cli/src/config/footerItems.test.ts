@@ -14,14 +14,12 @@ import { createMockSettings } from '../test-utils/settings.js';
 describe('footerItems', () => {
   describe('deriveItemsFromLegacySettings', () => {
     it('returns defaults when no legacy settings are customized', () => {
-      const settings = createMockSettings({
-        ui: { footer: { hideContextPercentage: true } },
-      }).merged;
+      const settings = createMockSettings({}).merged;
       const items = deriveItemsFromLegacySettings(settings);
       expect(items).toEqual([
         'workspace',
         'git-branch',
-        'sandbox',
+        'context-used',
         'model-name',
         'quota',
       ]);
@@ -55,16 +53,23 @@ describe('footerItems', () => {
       expect(items).not.toContain('quota');
     });
 
-    it('includes context-used when hideContextPercentage is false', () => {
+    it('places context-used before model-name when hideContextPercentage is false', () => {
       const settings = createMockSettings({
         ui: { footer: { hideContextPercentage: false } },
       }).merged;
       const items = deriveItemsFromLegacySettings(settings);
-      expect(items).toContain('context-used');
-      // Should be after model-name
-      const modelIdx = items.indexOf('model-name');
-      const contextIdx = items.indexOf('context-used');
-      expect(contextIdx).toBe(modelIdx + 1);
+      expect(items.indexOf('context-used')).toBe(
+        items.indexOf('model-name') - 1,
+      );
+    });
+
+    it('removes context-used when hideContextPercentage is true', () => {
+      const settings = createMockSettings({
+        ui: { footer: { hideContextPercentage: true } },
+      }).merged;
+      expect(deriveItemsFromLegacySettings(settings)).not.toContain(
+        'context-used',
+      );
     });
 
     it('includes memory-usage when showMemoryUsage is true', () => {
@@ -87,12 +92,7 @@ describe('footerItems', () => {
         },
       }).merged;
       const items = deriveItemsFromLegacySettings(settings);
-      expect(items).toEqual([
-        'git-branch',
-        'sandbox',
-        'context-used',
-        'memory-usage',
-      ]);
+      expect(items).toEqual(['git-branch', 'memory-usage']);
     });
   });
 
@@ -115,8 +115,8 @@ describe('footerItems', () => {
         'workspace',
         'model-name',
         'git-branch',
-        'sandbox',
         'context-used',
+        'sandbox',
         'quota',
         'memory-usage',
         'session-id',

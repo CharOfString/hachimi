@@ -240,7 +240,9 @@ export const FooterConfigDialog: React.FC<FooterConfigDialogProps> = ({
         <Text color={getColor('model-name', itemColor)}>gemini-2.5-pro</Text>
       ),
       'context-used': (
-        <Text color={getColor('context-used', itemColor)}>85% used</Text>
+        <Text color={getColor('context-used', itemColor)}>
+          108.8k/128k · 85%
+        </Text>
       ),
       quota: <Text color={getColor('quota', itemColor)}>42% used</Text>,
       'memory-usage': (

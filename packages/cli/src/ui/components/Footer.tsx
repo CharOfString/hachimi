@@ -345,9 +345,10 @@ export const Footer: React.FC = () => {
               promptTokenCount={promptTokenCount}
               model={model}
               terminalWidth={terminalWidth}
+              showTokens
             />
           ),
-          10, // "100% used" is 9 chars
+          18,
         );
         break;
       }

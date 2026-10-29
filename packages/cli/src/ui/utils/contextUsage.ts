@@ -6,14 +6,24 @@
 
 import { tokenLimit } from '@google/gemini-cli-core';
 
-export function getContextUsagePercentage(
-  promptTokenCount: number,
+type ProviderAccount = Parameters<typeof tokenLimit>[1];
+
+export function getContextTokenLimit(
   model: string | undefined,
+  account?: ProviderAccount,
 ): number {
   if (!model || typeof model !== 'string' || model.length === 0) {
     return 0;
   }
-  const limit = tokenLimit(model);
+  return tokenLimit(model, account);
+}
+
+export function getContextUsagePercentage(
+  promptTokenCount: number,
+  model: string | undefined,
+  account?: ProviderAccount,
+): number {
+  const limit = getContextTokenLimit(model, account);
   if (limit <= 0) {
     return 0;
   }

@@ -233,6 +233,7 @@ const createMockUIActions = (): UIActions =>
 const createMockConfig = (overrides = {}): Config =>
   ({
     getModel: vi.fn(() => 'gemini-1.5-pro'),
+    getContentGeneratorConfig: vi.fn(() => undefined),
     getTargetDir: vi.fn(() => '/test/dir'),
     getDebugMode: vi.fn(() => false),
     getAccessibility: vi.fn(() => ({})),

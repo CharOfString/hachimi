@@ -11,14 +11,14 @@ exports[`<FooterConfigDialog /> > highlights the active item in the preview 1`] 
 │     Current working directory                                                                    │
 │    [✓] git-branch                                                                                │
 │     Current git branch name (not shown when unavailable)                                         │
-│    [✓] sandbox                                                                                   │
-│     Sandbox type and trust indicator                                                             │
+│    [✓] context-used                                                                              │
+│     Context window tokens used, limit and percentage                                             │
 │    [✓] model-name                                                                                │
 │     Current model identifier                                                                     │
 │    [✓] quota                                                                                     │
 │     Percentage of daily limit used (not shown when unavailable)                                  │
-│    [ ] context-used                                                                              │
-│     Percentage of context window used                                                            │
+│    [ ] sandbox                                                                                   │
+│     Sandbox type and trust indicator                                                             │
 │    [ ] memory-usage                                                                              │
 │     Memory used by the application                                                               │
 │    [ ] session-id                                                                                │
@@ -40,8 +40,8 @@ exports[`<FooterConfigDialog /> > highlights the active item in the preview 1`] 
 │                                                                                                  │
 │  ┌────────────────────────────────────────────────────────────────────────────────────────────┐  │
 │  │ Preview:                                                                                   │  │
-│  │ workspace (/directory)     branch      sandbox     /model              quota        diff   │  │
-│  │ ~/project/path             main        docker      gemini-2.5-pro      42% used     +12 -4 │  │
+│  │ workspace (/directory)   branch    context window      /model            quota      diff   │  │
+│  │ ~/project/path           main      108.8k/128k · 85%   gemini-2.5-pro    42% used   +12 -4 │  │
 │  └────────────────────────────────────────────────────────────────────────────────────────────┘  │
 │                                                                                                  │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯"
@@ -58,14 +58,14 @@ exports[`<FooterConfigDialog /> > renders correctly with default settings 1`] = 
 │     Current working directory                                                                    │
 │    [✓] git-branch                                                                                │
 │     Current git branch name (not shown when unavailable)                                         │
-│    [✓] sandbox                                                                                   │
-│     Sandbox type and trust indicator                                                             │
+│    [✓] context-used                                                                              │
+│     Context window tokens used, limit and percentage                                             │
 │    [✓] model-name                                                                                │
 │     Current model identifier                                                                     │
 │    [✓] quota                                                                                     │
 │     Percentage of daily limit used (not shown when unavailable)                                  │
-│    [ ] context-used                                                                              │
-│     Percentage of context window used                                                            │
+│    [ ] sandbox                                                                                   │
+│     Sandbox type and trust indicator                                                             │
 │    [ ] memory-usage                                                                              │
 │     Memory used by the application                                                               │
 │    [ ] session-id                                                                                │
@@ -87,8 +87,8 @@ exports[`<FooterConfigDialog /> > renders correctly with default settings 1`] = 
 │                                                                                                  │
 │  ┌────────────────────────────────────────────────────────────────────────────────────────────┐  │
 │  │ Preview:                                                                                   │  │
-│  │ workspace (/directory)        branch         sandbox        /model                quota    │  │
-│  │ ~/project/path                main           docker         gemini-2.5-pro        42% used │  │
+│  │ workspace (/directory)      branch      context window        /model              quota    │  │
+│  │ ~/project/path              main        108.8k/128k · 85%     gemini-2.5-pro      42% used │  │
 │  └────────────────────────────────────────────────────────────────────────────────────────────┘  │
 │                                                                                                  │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
@@ -106,14 +106,14 @@ exports[`<FooterConfigDialog /> > renders correctly with default settings 2`] = 
 │     Current working directory                                                                    │
 │    [✓] git-branch                                                                                │
 │     Current git branch name (not shown when unavailable)                                         │
-│    [✓] sandbox                                                                                   │
-│     Sandbox type and trust indicator                                                             │
+│    [✓] context-used                                                                              │
+│     Context window tokens used, limit and percentage                                             │
 │    [✓] model-name                                                                                │
 │     Current model identifier                                                                     │
 │    [✓] quota                                                                                     │
 │     Percentage of daily limit used (not shown when unavailable)                                  │
-│    [ ] context-used                                                                              │
-│     Percentage of context window used                                                            │
+│    [ ] sandbox                                                                                   │
+│     Sandbox type and trust indicator                                                             │
 │    [ ] memory-usage                                                                              │
 │     Memory used by the application                                                               │
 │    [ ] session-id                                                                                │
@@ -135,8 +135,8 @@ exports[`<FooterConfigDialog /> > renders correctly with default settings 2`] = 
 │                                                                                                  │
 │  ┌────────────────────────────────────────────────────────────────────────────────────────────┐  │
 │  │ Preview:                                                                                   │  │
-│  │ workspace (/directory)        branch         sandbox        /model                quota    │  │
-│  │ ~/project/path                main           docker         gemini-2.5-pro        42% used │  │
+│  │ workspace (/directory)      branch      context window        /model              quota    │  │
+│  │ ~/project/path              main        108.8k/128k · 85%     gemini-2.5-pro      42% used │  │
 │  └────────────────────────────────────────────────────────────────────────────────────────────┘  │
 │                                                                                                  │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯"
@@ -153,14 +153,14 @@ exports[`<FooterConfigDialog /> > updates the preview when Show footer labels is
 │     Current working directory                                                                    │
 │    [✓] git-branch                                                                                │
 │     Current git branch name (not shown when unavailable)                                         │
-│    [✓] sandbox                                                                                   │
-│     Sandbox type and trust indicator                                                             │
+│    [✓] context-used                                                                              │
+│     Context window tokens used, limit and percentage                                             │
 │    [✓] model-name                                                                                │
 │     Current model identifier                                                                     │
 │    [✓] quota                                                                                     │
 │     Percentage of daily limit used (not shown when unavailable)                                  │
-│    [ ] context-used                                                                              │
-│     Percentage of context window used                                                            │
+│    [ ] sandbox                                                                                   │
+│     Sandbox type and trust indicator                                                             │
 │    [ ] memory-usage                                                                              │
 │     Memory used by the application                                                               │
 │    [ ] session-id                                                                                │
@@ -182,7 +182,7 @@ exports[`<FooterConfigDialog /> > updates the preview when Show footer labels is
 │                                                                                                  │
 │  ┌────────────────────────────────────────────────────────────────────────────────────────────┐  │
 │  │ Preview:                                                                                   │  │
-│  │ ~/project/path     ·     main     ·     docker     ·     gemini-2.5-pro     ·     42% used │  │
+│  │ ~/project/path   ·    main   ·     108.8k/128k · 85%   ·    gemini-2.5-pro   ·    42% used │  │
 │  └────────────────────────────────────────────────────────────────────────────────────────────┘  │
 │                                                                                                  │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯"

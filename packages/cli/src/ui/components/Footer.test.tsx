@@ -258,7 +258,8 @@ describe('<Footer />', () => {
       }),
     });
     expect(lastFrame()).toContain(defaultProps.model);
-    expect(lastFrame()).toMatch(/\d+% used/);
+    expect(lastFrame()).toContain('context window');
+    expect(lastFrame()).toMatch(/[\d.]+[kmb]?\/[\d.]+[kmb]? · \d+%/);
     unmount();
   });
 
@@ -358,10 +359,26 @@ describe('<Footer />', () => {
   });
 
   describe('sandbox and trust info', () => {
+    const sandboxSettings = () =>
+      createMockSettings({
+        ui: { footer: { items: ['workspace', 'sandbox'] } },
+      });
+
+    it('is not shown by default', async () => {
+      const { lastFrame, unmount } = await renderWithProviders(<Footer />, {
+        config: mockConfig,
+        width: 120,
+        uiState: { isTrustedFolder: true, sessionStats: mockSessionStats },
+      });
+      expect(lastFrame()).not.toContain('no sandbox');
+      unmount();
+    });
+
     it('should display untrusted when isTrustedFolder is false', async () => {
       const { lastFrame, unmount } = await renderWithProviders(<Footer />, {
         config: mockConfig,
         width: 120,
+        settings: sandboxSettings(),
         uiState: { isTrustedFolder: false, sessionStats: mockSessionStats },
       });
       expect(lastFrame()).toContain('untrusted');
@@ -373,6 +390,7 @@ describe('<Footer />', () => {
       const { lastFrame, unmount } = await renderWithProviders(<Footer />, {
         config: mockConfig,
         width: 120,
+        settings: sandboxSettings(),
         uiState: {
           isTrustedFolder: undefined,
           sessionStats: mockSessionStats,
@@ -389,6 +407,7 @@ describe('<Footer />', () => {
       const { lastFrame, unmount } = await renderWithProviders(<Footer />, {
         config: mockConfig,
         width: 120,
+        settings: sandboxSettings(),
         uiState: { isTrustedFolder: true, sessionStats: mockSessionStats },
       });
       expect(lastFrame()).toContain('current process');
@@ -402,6 +421,7 @@ describe('<Footer />', () => {
       const { lastFrame, unmount } = await renderWithProviders(<Footer />, {
         config: mockConfig,
         width: 120,
+        settings: sandboxSettings(),
         uiState: { isTrustedFolder: true, sessionStats: mockSessionStats },
       });
       expect(lastFrame()).toContain('no sandbox');
@@ -420,6 +440,7 @@ describe('<Footer />', () => {
           },
         ),
         width: 120,
+        settings: sandboxSettings(),
         uiState: { isTrustedFolder: true, sessionStats: mockSessionStats },
       });
       expect(lastFrame()).toContain('all tools');
@@ -432,6 +453,7 @@ describe('<Footer />', () => {
       const { lastFrame, unmount } = await renderWithProviders(<Footer />, {
         config: mockConfig,
         width: 120,
+        settings: sandboxSettings(),
         uiState: { isTrustedFolder: false, sessionStats: mockSessionStats },
       });
       expect(lastFrame()).toContain('untrusted');
@@ -503,7 +525,7 @@ describe('<Footer />', () => {
       unmount();
     });
 
-    it('renders footer with CWD and model info hidden to test alignment (only sandbox visible)', async () => {
+    it('renders footer with CWD and model info hidden to test alignment', async () => {
       const { lastFrame, unmount } = await renderWithProviders(<Footer />, {
         config: mockConfig,
         width: 120,
@@ -518,8 +540,8 @@ describe('<Footer />', () => {
           },
         }),
       });
-      expect(normalizeFrame(lastFrame())).toMatchSnapshot(
-        'footer-only-sandbox',
+      expect(normalizeFrame(lastFrame({ allowEmpty: true }))).toMatchSnapshot(
+        'footer-no-cwd-no-model',
       );
       unmount();
     });
@@ -538,7 +560,7 @@ describe('<Footer />', () => {
         }),
       });
       expect(lastFrame()).toContain(defaultProps.model);
-      expect(lastFrame()).not.toMatch(/\d+% used/);
+      expect(lastFrame()).not.toContain('context window');
       unmount();
     });
     it('shows the context percentage when hideContextPercentage is false', async () => {
@@ -555,7 +577,7 @@ describe('<Footer />', () => {
         }),
       });
       expect(lastFrame()).toContain(defaultProps.model);
-      expect(lastFrame()).toMatch(/\d+% used/);
+      expect(lastFrame()).toMatch(/[\d.]+[kmb]?\/[\d.]+[kmb]? · \d+%/);
       unmount();
     });
     it('renders complete footer in narrow terminal (baseline narrow)', async () => {

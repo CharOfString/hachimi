@@ -218,7 +218,7 @@ describe('<FooterConfigDialog />', () => {
 
     // By default labels are on
     expect(lastFrame()).toContain('workspace (/directory)');
-    expect(lastFrame()).toContain('sandbox');
+    expect(lastFrame()).toContain('context window');
     expect(lastFrame()).toContain('/model');
 
     // Move to "Show footer labels" (which is the second to last item)
@@ -255,7 +255,7 @@ describe('<FooterConfigDialog />', () => {
         ] || '';
       expect(nextLine).toContain('·');
       expect(nextLine).toContain('~/project/path');
-      expect(nextLine).toContain('docker');
+      expect(nextLine).toContain('108.8k/128k · 85%');
       expect(nextLine).toContain('42% used');
     });
 

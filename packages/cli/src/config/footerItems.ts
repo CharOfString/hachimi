@@ -18,6 +18,11 @@ export const ALL_ITEMS = [
     description: 'Current git branch name (not shown when unavailable)',
   },
   {
+    id: 'context-used',
+    header: 'context window',
+    description: 'Context window tokens used, limit and percentage',
+  },
+  {
     id: 'sandbox',
     header: 'sandbox',
     description: 'Sandbox type and trust indicator',
@@ -26,11 +31,6 @@ export const ALL_ITEMS = [
     id: 'model-name',
     header: '/model',
     description: 'Current model identifier',
-  },
-  {
-    id: 'context-used',
-    header: 'context',
-    description: 'Percentage of context window used',
   },
   {
     id: 'quota',
@@ -74,9 +74,9 @@ export type FooterItemId = (typeof ALL_ITEMS)[number]['id'];
 export const DEFAULT_ORDER = [
   'workspace',
   'git-branch',
+  'context-used',
   'sandbox',
   'model-name',
-  'context-used',
   'quota',
   'memory-usage',
   'session-id',
@@ -92,7 +92,7 @@ export function deriveItemsFromLegacySettings(
   const defaults = [
     'workspace',
     'git-branch',
-    'sandbox',
+    'context-used',
     'model-name',
     'quota',
   ];
@@ -110,14 +110,7 @@ export function deriveItemsFromLegacySettings(
     remove(items, 'context-used');
     remove(items, 'quota');
   }
-  if (
-    !settings.ui.footer.hideContextPercentage &&
-    !items.includes('context-used')
-  ) {
-    const modelIdx = items.indexOf('model-name');
-    if (modelIdx !== -1) items.splice(modelIdx + 1, 0, 'context-used');
-    else items.push('context-used');
-  }
+  if (settings.ui.footer.hideContextPercentage) remove(items, 'context-used');
   if (settings.ui.showMemoryUsage) items.push('memory-usage');
 
   return items;
