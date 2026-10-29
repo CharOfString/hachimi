@@ -1241,6 +1241,53 @@ describe('GeminiChat', () => {
       expect(fusedResumedTurn).toBeUndefined();
     });
 
+    it('should roll back a function response rejected for exceeding the context window', async () => {
+      chat.agentHistory.push({
+        id: 'model-turn-1',
+        content: {
+          role: 'model',
+          parts: [{ functionCall: { name: 'test_tool', args: {} } }],
+        },
+      });
+      const initialHistoryLength = chat.agentHistory.length;
+
+      vi.mocked(mockContentGenerator.generateContentStream).mockRejectedValue(
+        Object.assign(
+          new Error('Provider request exceeds the model context window.'),
+          { status: 400 },
+        ),
+      );
+
+      const stream = await chat.sendMessageStream(
+        { model: 'gemini-2.0-flash' },
+        [
+          {
+            functionResponse: {
+              name: 'test_tool',
+              response: { output: 'huge' },
+            },
+          },
+        ],
+        'prompt-id-overflow-rollback',
+        new AbortController().signal,
+        LlmRole.MAIN,
+      );
+
+      await expect(
+        (async () => {
+          for await (const _ of stream) {
+            // consume
+          }
+        })(),
+      ).rejects.toThrow('context window');
+
+      expect(chat.agentHistory.length).toBe(initialHistoryLength);
+      const turns = chat.agentHistory.get();
+      expect(
+        turns[turns.length - 1].content.parts?.[0]?.functionCall,
+      ).toBeDefined();
+    });
+
     it('should preserve mixed multimodal function responses during rollback when InvalidStreamError is thrown (regression)', async () => {
       // 1. Setup history ending with a model turn containing functionCall
       chat.agentHistory.push({

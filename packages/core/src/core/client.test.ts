@@ -1743,6 +1743,210 @@ ${JSON.stringify(
       expect(mockTurnRunFn).toHaveBeenCalled();
     });
 
+    it('should force compression and proceed when the request would overflow', async () => {
+      vi.mocked(tokenLimit).mockReturnValue(1000);
+
+      const chatWithState = (tokens: number) =>
+        ({
+          getLastPromptTokenCount: vi.fn().mockReturnValue(tokens),
+          getHistory: vi.fn().mockReturnValue([]),
+          addHistory: vi.fn(),
+          setTools: vi.fn(),
+        }) as unknown as GeminiChat;
+      client['chat'] = chatWithState(950);
+
+      const tryCompressSpy = vi
+        .spyOn(client, 'tryCompressChat')
+        .mockImplementation(async (_promptId, force) => {
+          if (!force) {
+            return {
+              originalTokenCount: 950,
+              newTokenCount: 950,
+              compressionStatus: CompressionStatus.NOOP,
+            };
+          }
+          client['chat'] = chatWithState(300);
+          return {
+            originalTokenCount: 950,
+            newTokenCount: 300,
+            compressionStatus: CompressionStatus.COMPRESSED,
+          };
+        });
+      mockTurnRunFn.mockImplementation(async function* () {
+        yield { type: 'content', value: 'ok' };
+      });
+
+      const events = await fromAsync(
+        client.sendMessageStream(
+          [{ text: 'a'.repeat(400) }],
+          new AbortController().signal,
+          'prompt-id-force-compress',
+        ),
+      );
+
+      expect(tryCompressSpy).toHaveBeenCalledWith(
+        'prompt-id-force-compress',
+        true,
+        expect.anything(),
+      );
+      expect(events).toContainEqual(
+        expect.objectContaining({ type: GeminiEventType.ChatCompressed }),
+      );
+      expect(events).not.toContainEqual(
+        expect.objectContaining({
+          type: GeminiEventType.ContextWindowWillOverflow,
+        }),
+      );
+      expect(mockTurnRunFn).toHaveBeenCalledTimes(1);
+    });
+
+    describe('when the provider rejects the request for exceeding the context window', () => {
+      const overflowError = {
+        type: GeminiEventType.Error,
+        value: {
+          error: {
+            message:
+              "This model's maximum context length is 128000 tokens. However, your messages resulted in 130000 tokens.",
+            status: 400,
+          },
+        },
+      };
+
+      beforeEach(() => {
+        client['chat'] = {
+          getLastPromptTokenCount: vi.fn().mockReturnValue(0),
+          getHistory: vi.fn().mockReturnValue([]),
+          addHistory: vi.fn(),
+          setTools: vi.fn(),
+        } as unknown as GeminiChat;
+      });
+
+      it('compresses the chat and resends the message', async () => {
+        const tryCompressSpy = vi
+          .spyOn(client, 'tryCompressChat')
+          .mockImplementation(async (_promptId, force) => ({
+            originalTokenCount: 1000,
+            newTokenCount: force ? 100 : 1000,
+            compressionStatus: force
+              ? CompressionStatus.COMPRESSED
+              : CompressionStatus.NOOP,
+          }));
+        mockTurnRunFn
+          .mockImplementationOnce(async function* () {
+            yield overflowError;
+          })
+          .mockImplementationOnce(async function* () {
+            yield { type: GeminiEventType.Content, value: 'resent' };
+          });
+
+        const events = await fromAsync(
+          client.sendMessageStream(
+            [{ text: 'hello' }],
+            new AbortController().signal,
+            'prompt-id-overflow-retry',
+          ),
+        );
+
+        expect(tryCompressSpy).toHaveBeenCalledWith(
+          'prompt-id-overflow-retry',
+          true,
+          expect.anything(),
+        );
+        expect(mockTurnRunFn).toHaveBeenCalledTimes(2);
+        expect(mockTurnRunFn.mock.calls[1][1]).toEqual([{ text: 'hello' }]);
+        expect(events).toContainEqual(
+          expect.objectContaining({ type: GeminiEventType.ChatCompressed }),
+        );
+        expect(events).toContainEqual({
+          type: GeminiEventType.Content,
+          value: 'resent',
+        });
+        expect(events).not.toContainEqual(overflowError);
+      });
+
+      it('reports the error when compression does not help', async () => {
+        vi.spyOn(client, 'tryCompressChat').mockResolvedValue({
+          originalTokenCount: 1000,
+          newTokenCount: 1000,
+          compressionStatus: CompressionStatus.NOOP,
+        });
+        mockTurnRunFn.mockImplementation(async function* () {
+          yield overflowError;
+        });
+
+        const events = await fromAsync(
+          client.sendMessageStream(
+            [{ text: 'hello' }],
+            new AbortController().signal,
+            'prompt-id-overflow-noop',
+          ),
+        );
+
+        expect(mockTurnRunFn).toHaveBeenCalledTimes(1);
+        expect(events).toContainEqual(overflowError);
+      });
+
+      it('resends only once', async () => {
+        vi.spyOn(client, 'tryCompressChat').mockImplementation(
+          async (_promptId, force) => ({
+            originalTokenCount: 1000,
+            newTokenCount: force ? 100 : 1000,
+            compressionStatus: force
+              ? CompressionStatus.COMPRESSED
+              : CompressionStatus.NOOP,
+          }),
+        );
+        mockTurnRunFn.mockImplementation(async function* () {
+          yield overflowError;
+        });
+
+        const events = await fromAsync(
+          client.sendMessageStream(
+            [{ text: 'hello' }],
+            new AbortController().signal,
+            'prompt-id-overflow-once',
+          ),
+        );
+
+        expect(mockTurnRunFn).toHaveBeenCalledTimes(2);
+        expect(
+          events.filter((e) => e.type === GeminiEventType.Error),
+        ).toHaveLength(1);
+      });
+
+      it('does not compress for unrelated errors', async () => {
+        const tryCompressSpy = vi
+          .spyOn(client, 'tryCompressChat')
+          .mockResolvedValue({
+            originalTokenCount: 1000,
+            newTokenCount: 1000,
+            compressionStatus: CompressionStatus.NOOP,
+          });
+        const otherError = {
+          type: GeminiEventType.Error,
+          value: { error: { message: 'Internal error', status: 500 } },
+        };
+        mockTurnRunFn.mockImplementation(async function* () {
+          yield otherError;
+        });
+
+        const events = await fromAsync(
+          client.sendMessageStream(
+            [{ text: 'hello' }],
+            new AbortController().signal,
+            'prompt-id-other-error',
+          ),
+        );
+
+        expect(tryCompressSpy).not.toHaveBeenCalledWith(
+          expect.anything(),
+          true,
+          expect.anything(),
+        );
+        expect(events).toContainEqual(otherError);
+      });
+    });
+
     it('should handle massive function responses by truncating them and then yielding overflow warning', async () => {
       // Arrange
       const MOCKED_TOKEN_LIMIT = 1000;
@@ -1777,12 +1981,20 @@ ${JSON.stringify(
       // We spy on the instance directly to ensure it intercepts correctly.
       const compressSpy = vi
         .spyOn(client['compressionService'], 'compress')
-        .mockResolvedValue({
+        .mockResolvedValueOnce({
           newHistory: history, // Keep history large for the overflow check
           info: {
             originalTokenCount: 50000,
             newTokenCount: 10000, // Reduced from 50k but still > 1000 limit
             compressionStatus: CompressionStatus.COMPRESSED,
+          },
+        })
+        .mockResolvedValue({
+          newHistory: null,
+          info: {
+            originalTokenCount: 10000,
+            newTokenCount: 10000,
+            compressionStatus: CompressionStatus.NOOP,
           },
         });
 

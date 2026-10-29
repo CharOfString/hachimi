@@ -324,3 +324,19 @@ export function isAuthenticationError(error: unknown): boolean {
 
   return false;
 }
+
+const CONTEXT_WINDOW_EXCEEDED_REGEX =
+  /context[_\s-]?length[_\s-]?exceeded|maximum context length|context (?:window|length) (?:is |has been )?(?:exceeded|too (?:long|large|small))|exceeds? (?:the )?(?:model'?s? )?(?:maximum |max )?context|prompt is too long|input (?:is )?too long|(?:input|prompt) tokens? (?:count )?(?:\(\d+\) )?exceeds?|input token count.*exceeds|exceeds? (?:the )?maximum number of tokens|range of input length|exceeded model token limit|prompt exceeds max length|too many (?:input |prompt )?tokens/i;
+
+export function isContextWindowExceededError(error: unknown): boolean {
+  const status = isRecord(error)
+    ? (error['status'] ?? error['code'] ?? error['statusCode'])
+    : undefined;
+  if (status === 401 || status === 403 || status === 429) {
+    return false;
+  }
+  if (status === 413) {
+    return true;
+  }
+  return CONTEXT_WINDOW_EXCEEDED_REGEX.test(getErrorMessage(error));
+}

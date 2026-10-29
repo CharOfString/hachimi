@@ -350,6 +350,53 @@ describe('provider protocol adapter', () => {
     ).rejects.toThrow('HTTP 401');
   });
 
+  it('reports context window overflow without exposing the response body', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            error: {
+              message:
+                "private-key: This model's maximum context length is 128000 tokens.",
+            },
+          }),
+          { status: 400 },
+        ),
+      ),
+    );
+    const request = new ProviderContentGenerator(
+      account,
+      'private-key',
+      () => 'chat',
+    ).generateContent({ model: 'chat', contents: 'hi' });
+
+    await expect(request).rejects.toMatchObject({
+      message: 'Provider request exceeds the model context window. (HTTP 400)',
+      status: 400,
+    });
+  });
+
+  it('reports context window overflow from a streaming error', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValue(
+          sse([
+            { error: { code: 'context_length_exceeded', message: 'too long' } },
+          ]),
+        ),
+    );
+    await expect(
+      new ProviderContentGenerator(
+        account,
+        'key',
+        () => 'chat',
+      ).generateContent({ model: 'chat', contents: 'hi' }),
+    ).rejects.toThrow('Provider request exceeds the model context window.');
+  });
+
   it('parses split UTF-8 and multiline SSE data', async () => {
     const bytes = new TextEncoder().encode('data: 你好\r\ndata: world\r\n\r\n');
     const body = new ReadableStream<Uint8Array>({

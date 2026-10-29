@@ -23,6 +23,7 @@ import {
   Turn,
   GeminiEventType,
   type ServerGeminiStreamEvent,
+  type ServerGeminiErrorEvent,
   type ChatCompressionInfo,
 } from './turn.js';
 import type { Config } from '../config/config.js';
@@ -36,7 +37,11 @@ import {
   type RetryAvailabilityContext,
 } from '../utils/retry.js';
 import type { ValidationRequiredError } from '../utils/googleQuotaErrors.js';
-import { getErrorMessage, isAbortError } from '../utils/errors.js';
+import {
+  getErrorMessage,
+  isAbortError,
+  isContextWindowExceededError,
+} from '../utils/errors.js';
 import { tokenLimit } from './tokenLimits.js';
 import type {
   ChatRecordingService,
@@ -648,6 +653,7 @@ export class GeminiClient {
     prompt_id: string,
     boundedTurns: number,
     displayContent?: PartListUnion,
+    canRecoverFromOverflow: boolean = true,
   ): AsyncGenerator<ServerGeminiStreamEvent, Turn> {
     // Re-initialize turn (it was empty before if in loop, or new instance)
     let turn = new Turn(this.getChat(), prompt_id);
@@ -740,7 +746,25 @@ export class GeminiClient {
       modelForLimitCheck,
     );
 
+    const recoverFromOverflow =
+      canRecoverFromOverflow &&
+      !this.config.getContextManagementConfig().enabled;
+
     if (estimatedRequestTokenCount > remainingTokenCount) {
+      if (recoverFromOverflow) {
+        const compressed = await this.tryCompressChat(prompt_id, true, signal);
+        if (compressed.compressionStatus === CompressionStatus.COMPRESSED) {
+          yield { type: GeminiEventType.ChatCompressed, value: compressed };
+          return yield* this.processTurn(
+            request,
+            signal,
+            prompt_id,
+            boundedTurns,
+            displayContent,
+            false,
+          );
+        }
+      }
       yield {
         type: GeminiEventType.ContextWindowWillOverflow,
         value: { estimatedRequestTokenCount, remainingTokenCount },
@@ -843,7 +867,16 @@ export class GeminiClient {
 
     let loopDetectedAbort = false;
     let loopRecoverResult: { detail?: string } | undefined;
+    let overflowError: ServerGeminiErrorEvent | undefined;
     for await (const event of resultStream) {
+      if (
+        recoverFromOverflow &&
+        event.type === GeminiEventType.Error &&
+        isContextWindowExceededError(event.value.error)
+      ) {
+        overflowError = event;
+        break;
+      }
       const loopResult = this.loopDetector.addAndCheck(event);
       if (loopResult.count > 1) {
         yield { type: GeminiEventType.LoopDetected };
@@ -876,6 +909,23 @@ export class GeminiClient {
     }
 
     if (loopDetectedAbort) {
+      return turn;
+    }
+
+    if (overflowError) {
+      const compressed = await this.tryCompressChat(prompt_id, true, signal);
+      if (compressed.compressionStatus === CompressionStatus.COMPRESSED) {
+        yield { type: GeminiEventType.ChatCompressed, value: compressed };
+        return yield* this.processTurn(
+          request,
+          signal,
+          prompt_id,
+          boundedTurns,
+          displayContent,
+          false,
+        );
+      }
+      yield overflowError;
       return turn;
     }
 

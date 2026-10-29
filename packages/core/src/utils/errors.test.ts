@@ -15,6 +15,7 @@ import {
   AccountSuspendedError,
   getErrorMessage,
   getErrorType,
+  isContextWindowExceededError,
   FatalAuthenticationError,
   FatalCancellationError,
   FatalInputError,
@@ -527,5 +528,46 @@ describe('getErrorType', () => {
       }
     }
     expect(getErrorType(new _AbortError2('test'))).toBe('AbortError');
+  });
+});
+
+describe('isContextWindowExceededError', () => {
+  it.each([
+    "This model's maximum context length is 128000 tokens. However, your messages resulted in 130000 tokens.",
+    'prompt is too long: 210000 tokens > 200000 maximum',
+    'The input token count (1200000) exceeds the maximum number of tokens allowed (1048576).',
+    'context_length_exceeded',
+    'Range of input length should be [1, 129024]',
+    'Invalid request: Your request exceeded model token limit: 262144',
+    'Provider request exceeds the model context window.',
+  ])('detects %s', (message) => {
+    expect(isContextWindowExceededError({ message, status: 400 })).toBe(true);
+  });
+
+  it('detects HTTP 413 responses', () => {
+    expect(
+      isContextWindowExceededError({ message: 'Payload', status: 413 }),
+    ).toBe(true);
+  });
+
+  it('ignores rate limits mentioning tokens', () => {
+    expect(
+      isContextWindowExceededError({
+        message: 'Too many tokens per minute, please slow down.',
+        status: 429,
+      }),
+    ).toBe(false);
+  });
+
+  it('ignores unrelated errors', () => {
+    expect(isContextWindowExceededError(new Error('Internal error'))).toBe(
+      false,
+    );
+    expect(
+      isContextWindowExceededError({
+        message: 'Invalid API key',
+        status: 400,
+      }),
+    ).toBe(false);
   });
 });

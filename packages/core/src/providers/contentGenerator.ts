@@ -21,6 +21,7 @@ import {
   getProviderReasoningEffort,
   type ReasoningEffort,
 } from '../core/reasoningEffort.js';
+import { isContextWindowExceededError } from '../utils/errors.js';
 
 type Json = Record<string, unknown>;
 
@@ -92,7 +93,19 @@ const anthropicEventSchema = z.object({
     })
     .optional(),
   usage: z.object({ output_tokens: z.number().optional() }).optional(),
+  error: z.unknown().optional(),
 });
+
+const CONTEXT_WINDOW_EXCEEDED =
+  'Provider request exceeds the model context window.';
+
+function streamError(error: unknown): Error {
+  return new Error(
+    isContextWindowExceededError(JSON.stringify(error) ?? '')
+      ? CONTEXT_WINDOW_EXCEEDED
+      : 'Provider reported a streaming error.',
+  );
+}
 
 type MessageBlock =
   | { type: 'text'; text: string }
@@ -626,11 +639,16 @@ export class ProviderContentGenerator implements ContentGenerator {
     });
 
     if (!result.ok) {
-      await result.body?.cancel();
+      const text = await result.text().catch(() => '');
 
       throw Object.assign(
         new Error(
-          `Provider request failed (HTTP ${result.status}). Check the account endpoint, key, model and quota.`,
+          isContextWindowExceededError({
+            status: result.status,
+            message: text.slice(0, 4096),
+          })
+            ? `${CONTEXT_WINDOW_EXCEEDED} (HTTP ${result.status})`
+            : `Provider request failed (HTTP ${result.status}). Check the account endpoint, key, model and quota.`,
         ),
         { status: result.status },
       );
@@ -663,7 +681,7 @@ export class ProviderContentGenerator implements ContentGenerator {
       if (anthropic) {
         const event = anthropicEventSchema.parse(JSON.parse(data));
         if (event.type === 'error') {
-          throw new Error('Provider reported a streaming error.');
+          throw streamError(event.error);
         }
 
         if (event.message?.usage) {
@@ -708,7 +726,7 @@ export class ProviderContentGenerator implements ContentGenerator {
       } else {
         const chunk = openAIChunkSchema.parse(JSON.parse(data));
         if (chunk.error) {
-          throw new Error('Provider reported a streaming error.');
+          throw streamError(chunk.error);
         }
 
         const choice = chunk.choices?.[0];

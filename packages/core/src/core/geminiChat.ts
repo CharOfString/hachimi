@@ -41,7 +41,7 @@ import {
 import { hasCycleInSchema } from '../tools/tools.js';
 import type { StructuredError } from './turn.js';
 import type { CompletedToolCall } from '../scheduler/types.js';
-import { isAbortError } from '../utils/errors.js';
+import { isAbortError, isContextWindowExceededError } from '../utils/errors.js';
 import {
   logContentRetry,
   logContentRetryFailure,
@@ -835,7 +835,10 @@ export class GeminiChat {
             this.promptOriginalHistoryLength = undefined;
             this.promptOriginalTokenCount = undefined;
             this.lastPromptId = undefined;
-          } else if (!isOriginalFunctionResponse) {
+          } else if (
+            !isOriginalFunctionResponse ||
+            isContextWindowExceededError(caughtError)
+          ) {
             this.agentHistory.rollback(historyLengthBefore);
             this.chatRecordingService.updateMessagesFromHistory(
               this.agentHistory.get(),
