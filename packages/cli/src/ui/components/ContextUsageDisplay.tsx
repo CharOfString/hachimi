@@ -10,12 +10,9 @@ import {
   getContextTokenLimit,
   getContextUsagePercentage,
 } from '../utils/contextUsage.js';
-import { useSettings } from '../contexts/SettingsContext.js';
 import { useConfig } from '../contexts/ConfigContext.js';
-import {
-  MIN_TERMINAL_WIDTH_FOR_FULL_LABEL,
-  DEFAULT_COMPRESSION_THRESHOLD,
-} from '../constants.js';
+import { MIN_TERMINAL_WIDTH_FOR_FULL_LABEL } from '../constants.js';
+import { interpolateColor } from '../themes/color-utils.js';
 
 const compact = new Intl.NumberFormat('en-US', {
   notation: 'compact',
@@ -23,6 +20,17 @@ const compact = new Intl.NumberFormat('en-US', {
 });
 
 const formatTokens = (count: number) => compact.format(count).toLowerCase();
+
+export function getContextUsageColor(percentage: number): string {
+  const used = Math.min(Math.max(percentage, 0), 1);
+  return used < 0.5
+    ? interpolateColor(theme.status.success, theme.status.warning, used * 2)
+    : interpolateColor(
+        theme.status.warning,
+        theme.status.error,
+        (used - 0.5) * 2,
+      );
+}
 
 export const ContextUsageDisplay = ({
   promptTokenCount,
@@ -35,7 +43,6 @@ export const ContextUsageDisplay = ({
   terminalWidth: number;
   showTokens?: boolean;
 }) => {
-  const settings = useSettings();
   const account = useConfig().getContentGeneratorConfig()?.providerAccount;
   const percentage = getContextUsagePercentage(
     promptTokenCount,
@@ -44,16 +51,7 @@ export const ContextUsageDisplay = ({
   );
   const percentageUsed = (percentage * 100).toFixed(0);
 
-  const threshold =
-    settings.merged.model?.compressionThreshold ??
-    DEFAULT_COMPRESSION_THRESHOLD;
-
-  let textColor = theme.text.secondary;
-  if (percentage >= 1.0) {
-    textColor = theme.status.error;
-  } else if (percentage >= threshold) {
-    textColor = theme.status.warning;
-  }
+  const textColor = getContextUsageColor(percentage);
 
   if (showTokens) {
     const limit = getContextTokenLimit(model, account);

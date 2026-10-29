@@ -5,7 +5,11 @@
  */
 
 import { renderWithProviders } from '../../test-utils/render.js';
-import { ContextUsageDisplay } from './ContextUsageDisplay.js';
+import {
+  ContextUsageDisplay,
+  getContextUsageColor,
+} from './ContextUsageDisplay.js';
+import { theme } from '../semantic-colors.js';
 import { describe, it, expect, vi } from 'vitest';
 
 vi.mock('@google/gemini-cli-core', async (importOriginal) => {
@@ -83,5 +87,39 @@ describe('ContextUsageDisplay', () => {
     const output = lastFrame();
     expect(output).toContain('100% used');
     unmount();
+  });
+
+  it('renders tokens, limit and percentage when showTokens is set', async () => {
+    const { lastFrame, unmount } = await renderWithProviders(
+      <ContextUsageDisplay
+        promptTokenCount={2500}
+        model="gemini-pro"
+        terminalWidth={120}
+        showTokens
+      />,
+    );
+    expect(lastFrame()).toContain('2.5k/10k · 25%');
+    unmount();
+  });
+
+  describe('getContextUsageColor', () => {
+    it('is green when the context is empty', () => {
+      expect(getContextUsageColor(0)).toBe(theme.status.success);
+    });
+
+    it('is yellow at half usage', () => {
+      expect(getContextUsageColor(0.5)).toBe(theme.status.warning);
+    });
+
+    it('is red when the context is full or over', () => {
+      expect(getContextUsageColor(1)).toBe(theme.status.error);
+      expect(getContextUsageColor(1.2)).toBe(theme.status.error);
+    });
+
+    it('blends between the stops', () => {
+      const color = getContextUsageColor(0.75);
+      expect(color).not.toBe(theme.status.warning);
+      expect(color).not.toBe(theme.status.error);
+    });
   });
 });
