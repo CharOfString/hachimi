@@ -18,6 +18,7 @@ import {
   loadAccountKey,
   loadActiveAccountCredentials,
   deleteAccount,
+  setModelContextWindow,
 } from './accounts.js';
 import type { ProviderAccount } from './types.js';
 
@@ -151,5 +152,25 @@ describe('provider accounts', () => {
     fs.writeFileSync(accountStorePath(), 'not-json');
     expect(() => selectAccount(a.id)).toThrow('Cannot read Hachimi accounts');
     expect(fs.readFileSync(accountStorePath(), 'utf8')).toBe('not-json');
+  });
+  it('declares and clears one model context window without touching others', async () => {
+    const a = account();
+    await saveAccount(a, 'key');
+    setModelContextWindow(a.id, 'reasoner', 1_000_000);
+    expect(readAccounts().accounts[0].models).toEqual([
+      { id: 'chat' },
+      { id: 'reasoner', contextWindowSize: 1_000_000 },
+    ]);
+    await saveAccount({ ...readAccounts().accounts[0], name: 'Renamed' });
+    expect(readAccounts().accounts[0].models[1].contextWindowSize).toBe(
+      1_000_000,
+    );
+    setModelContextWindow(a.id, 'reasoner');
+    expect(readAccounts().accounts[0].models[1]).toEqual({ id: 'reasoner' });
+    expect(() => setModelContextWindow(a.id, 'unknown', 1)).toThrow(
+      'Model not configured',
+    );
+    expect(() => setModelContextWindow(a.id, 'chat', 0)).toThrow();
+    expect(readAccounts().accounts[0].models[0]).toEqual({ id: 'chat' });
   });
 });

@@ -1602,7 +1602,10 @@ export const useGeminiStream = (
         setPendingHistoryItem(null);
       }
 
-      const limit = tokenLimit(config.getModel());
+      const limit = tokenLimit(
+        config.getModel(),
+        config.getContentGeneratorConfig()?.providerAccount,
+      );
       const originalPercentage = Math.round(
         ((eventValue?.originalTokenCount ?? 0) / limit) * 100,
       );
@@ -1639,7 +1642,10 @@ export const useGeminiStream = (
     (estimatedRequestTokenCount: number, remainingTokenCount: number) => {
       onCancelSubmit(true);
 
-      const limit = tokenLimit(config.getModel());
+      const limit = tokenLimit(
+        config.getModel(),
+        config.getContentGeneratorConfig()?.providerAccount,
+      );
 
       const isMoreThan25PercentUsed =
         limit > 0 && remainingTokenCount < limit * 0.75;

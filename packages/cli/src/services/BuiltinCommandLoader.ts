@@ -20,6 +20,7 @@ import {
   AuthType,
 } from '@google/gemini-cli-core';
 import { approveCommand } from '../ui/commands/approveCommand.js';
+import { declareCommand } from '../ui/commands/declareCommand.js';
 import { effortCommand } from '../ui/commands/effortCommand.js';
 import { aboutCommand } from '../ui/commands/aboutCommand.js';
 import { agentsCommand } from '../ui/commands/agentsCommand.js';
@@ -144,6 +145,7 @@ export class BuiltinCommandLoader implements ICommandLoader {
       corgiCommand,
       docsCommand,
       exportSessionCommand,
+      declareCommand,
       directoryCommand,
       editorCommand,
       effortCommand,

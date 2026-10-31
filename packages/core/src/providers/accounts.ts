@@ -225,6 +225,27 @@ export function selectAccount(id?: string, model?: string): void {
   });
 }
 
+export function setModelContextWindow(
+  id: string,
+  model: string,
+  size?: number,
+): void {
+  mutateAccounts((store) => {
+    const entry = store.accounts
+      .find((a) => a.id === id)
+      ?.models.find((m) => m.id === model);
+    if (!entry) {
+      throw new Error('Model not configured for this account.');
+    }
+
+    if (size === undefined) {
+      delete entry.contextWindowSize;
+    } else {
+      entry.contextWindowSize = size;
+    }
+  });
+}
+
 export async function deleteAccount(id: string): Promise<void> {
   const target = accountStorePath();
   fs.mkdirSync(path.dirname(target), { recursive: true, mode: 0o700 });
